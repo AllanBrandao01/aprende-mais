@@ -2,7 +2,7 @@
 -- Rode em: SQL Editor > New query > Run. Reexecutável — remove e recria tudo.
 
 drop view if exists public.resultados;
-drop function if exists public.is_professor();
+drop function if exists public.is_professor() cascade;
 drop table if exists public.respostas_aluno cascade;
 drop table if exists public.alternativas cascade;
 drop table if exists public.questoes cascade;
@@ -60,7 +60,11 @@ create table public.respostas_aluno (
 );
 
 -- desempenho agregado por aluno/exercício, usado no dashboard do professor
-create view public.resultados as
+-- security_invoker: a view roda com o privilégio de quem consulta, então o RLS
+-- de respostas_aluno se aplica normalmente (aluno só vê o próprio resultado)
+create view public.resultados
+with (security_invoker = true)
+as
 select
   ra.aluno_id,
   q.exercicio_id,
@@ -134,3 +138,5 @@ create policy "respostas_select_own_or_professor" on public.respostas_aluno
   for select using (aluno_id = auth.uid() or public.is_professor());
 create policy "respostas_insert_own" on public.respostas_aluno
   for insert with check (aluno_id = auth.uid());
+create policy "respostas_update_own" on public.respostas_aluno
+  for update using (aluno_id = auth.uid());
