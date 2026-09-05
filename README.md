@@ -1,4 +1,4 @@
-# Reforço Escolar — Atividade Extensionista II
+# Aprende+
 
 Plataforma web de reforço em Língua Portuguesa e Matemática, com acessibilidade, para alunos do ensino fundamental com dificuldades de aprendizado.
 

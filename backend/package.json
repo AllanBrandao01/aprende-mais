@@ -1,7 +1,7 @@
 {
-  "name": "reforco-escolar-backend",
+  "name": "aprende-mais-backend",
   "version": "1.0.0",
-  "description": "API do projeto de reforço escolar (Atividade Extensionista II)",
+  "description": "API do Aprende+ (Atividade Extensionista II)",
   "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
