@@ -22,6 +22,7 @@ create table public.profiles (
   nome text not null,
   tipo public.tipo_usuario not null,
   turma text,
+  usuario text unique,
   created_at timestamptz not null default now()
 );
 

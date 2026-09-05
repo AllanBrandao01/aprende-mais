@@ -1,0 +1,111 @@
+.loginPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f4f6fb;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 4px 24px rgba(30, 58, 95, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loginCard h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #1e3a5f;
+  text-align: center;
+}
+
+.subtitulo {
+  margin: 0 0 8px;
+  text-align: center;
+  color: #475569;
+  font-size: 15px;
+}
+
+.tabs {
+  display: flex;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: #ffffff;
+  color: #334155;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.tabs button.ativo {
+  background: #1e3a5f;
+  color: #ffffff;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: #334155;
+}
+
+input,
+select {
+  font-size: 16px;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+}
+
+input:focus,
+select:focus,
+button:focus-visible {
+  outline: 3px solid #7fb2e5;
+  outline-offset: 1px;
+}
+
+.botaoPrincipal {
+  margin-top: 8px;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: #1e3a5f;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.botaoPrincipal:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.mensagem {
+  margin: 0;
+  font-size: 14px;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+@media (max-width: 400px) {
+  .loginCard {
+    padding: 24px 20px;
+  }
+}

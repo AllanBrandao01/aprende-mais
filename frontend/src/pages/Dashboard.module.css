@@ -1,0 +1,34 @@
+.dashboardPage {
+  min-height: 100vh;
+  background: #f4f6fb;
+}
+
+.dashboardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #1e3a5f;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.dashboardHeader button {
+  padding: 8px 16px;
+  border: 1px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dashboardContent {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.dashboardContent h1 {
+  color: #1e3a5f;
+}
