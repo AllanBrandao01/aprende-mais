@@ -20,6 +20,8 @@ export const api = {
   listExercicios: (token) => request('/exercicios', { token }),
   getExercicio: (id, token) => request(`/exercicios/${id}`, { token }),
   criarExercicio: (payload, token) => request('/exercicios', { method: 'POST', body: payload, token }),
+  atualizarExercicio: (id, payload, token) => request(`/exercicios/${id}`, { method: 'PUT', body: payload, token }),
+  excluirExercicio: (id, token) => request(`/exercicios/${id}`, { method: 'DELETE', token }),
   responder: (exercicioId, payload, token) =>
     request(`/exercicios/${exercicioId}/respostas`, { method: 'POST', body: payload, token }),
   resultados: (exercicioId, token) => request(`/exercicios/${exercicioId}/resultados`, { token }),

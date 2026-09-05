@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import styles from '../professor/CriarExercicio.module.css';
@@ -65,9 +65,14 @@ export function NovoAluno() {
           </p>
         )}
 
-        <button type="submit" className={styles.botaoPrincipal} disabled={salvando}>
-          {salvando ? 'Salvando...' : 'Cadastrar aluno'}
-        </button>
+        <div className={styles.linha}>
+          <button type="submit" className={styles.botaoPrincipal} disabled={salvando}>
+            {salvando ? 'Salvando...' : 'Cadastrar aluno'}
+          </button>
+          <Link to="/professor/alunos" className={styles.botaoCancelar}>
+            Cancelar
+          </Link>
+        </div>
       </form>
     </div>
   );

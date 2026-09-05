@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePreferencias } from '../context/PreferenciasContext';
 import styles from './Layout.module.css';
@@ -14,7 +14,9 @@ export function Layout() {
       </a>
       <header className={styles.header}>
         <div className={styles.headerTopo}>
-          <span>Aprende+</span>
+          <Link to="/" className={styles.logo}>
+            Aprende+
+          </Link>
           <div className={styles.preferencias}>
             <button onClick={diminuirFonte} aria-label="Diminuir tamanho da fonte">
               A-

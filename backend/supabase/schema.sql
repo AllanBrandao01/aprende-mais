@@ -38,6 +38,9 @@ create table public.exercicios (
   titulo text not null,
   disciplina public.disciplina not null,
   serie text,
+  -- mídia principal do exercício (ex: 1 vídeo com várias questões sobre ele)
+  midia_url text,
+  midia_tipo public.tipo_midia,
   criado_por uuid not null references public.profiles (id),
   created_at timestamptz not null default now()
 );

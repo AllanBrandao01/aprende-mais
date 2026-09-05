@@ -121,6 +121,7 @@
 }
 
 .botaoPrincipal {
+  flex: 1;
   padding: 14px;
   border: none;
   border-radius: 8px;
@@ -132,6 +133,16 @@
 
 .botaoPrincipal:disabled {
   opacity: 0.6;
+}
+
+.botaoCancelar {
+  padding: 14px 20px;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  color: #334155;
+  text-decoration: none;
+  font-size: 16px;
+  text-align: center;
 }
 
 .erro {

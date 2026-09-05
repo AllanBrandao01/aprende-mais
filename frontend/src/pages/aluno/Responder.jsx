@@ -5,6 +5,22 @@ import { api } from '../../lib/api';
 import { falar, youtubeEmbedUrl } from '../../lib/midia';
 import styles from './Responder.module.css';
 
+function Midia({ url, tipo, legenda }) {
+  if (!url) return null;
+  if (tipo === 'video' && youtubeEmbedUrl(url)) {
+    return (
+      <iframe
+        className={styles.midiaVideo}
+        src={youtubeEmbedUrl(url)}
+        title={legenda}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+  return <img className={styles.midiaImagem} src={url} alt={legenda} />;
+}
+
 export function Responder() {
   const { id } = useParams();
   const { token } = useAuth();
@@ -75,6 +91,9 @@ export function Responder() {
       <p className={styles.progresso}>
         Questão {indice + 1} de {exercicio.questoes.length}
       </p>
+
+      <Midia url={exercicio.midia_url} tipo={exercicio.midia_tipo} legenda="Mídia de apoio do exercício" />
+
       <div className={styles.enunciadoLinha}>
         <h1>{questao.enunciado}</h1>
         <button
@@ -87,18 +106,7 @@ export function Responder() {
         </button>
       </div>
 
-      {questao.midia_url && questao.midia_tipo === 'imagem' && (
-        <img className={styles.midiaImagem} src={questao.midia_url} alt="Imagem de apoio da questão" />
-      )}
-      {questao.midia_url && questao.midia_tipo === 'video' && youtubeEmbedUrl(questao.midia_url) && (
-        <iframe
-          className={styles.midiaVideo}
-          src={youtubeEmbedUrl(questao.midia_url)}
-          title="Vídeo de apoio da questão"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
-      )}
+      <Midia url={questao.midia_url} tipo={questao.midia_tipo} legenda="Imagem de apoio da questão" />
 
       <div className={styles.alternativas}>
         {questao.alternativas.map((alt) => {

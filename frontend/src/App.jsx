@@ -33,6 +33,7 @@ function App() {
               <Route path="/professor" element={<Dashboard />} />
               <Route path="/professor/exercicios" element={<ExerciciosListProfessor />} />
               <Route path="/professor/novo" element={<CriarExercicio />} />
+              <Route path="/professor/:id/editar" element={<CriarExercicio />} />
               <Route path="/professor/:id/resultados" element={<Resultados />} />
               <Route path="/professor/alunos" element={<Alunos />} />
               <Route path="/professor/alunos/novo" element={<NovoAluno />} />

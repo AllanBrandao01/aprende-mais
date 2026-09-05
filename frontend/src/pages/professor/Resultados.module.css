@@ -20,6 +20,48 @@
   margin-top: 0;
 }
 
+.cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.acoes {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.botaoSecundario {
+  padding: 8px 14px;
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  color: #1e3a5f;
+  text-decoration: none;
+  font-size: 14px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.botaoExcluir {
+  padding: 8px 14px;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  background: none;
+  color: #dc2626;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.botaoExcluir:disabled {
+  opacity: 0.6;
+}
+
 .lista {
   display: flex;
   flex-direction: column;

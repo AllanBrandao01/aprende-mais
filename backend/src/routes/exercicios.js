@@ -3,6 +3,50 @@ import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
+async function vincularAlunos(supabase, exercicioId, alunoIds) {
+  return supabase.from('exercicio_alunos').insert(alunoIds.map((aluno_id) => ({ exercicio_id: exercicioId, aluno_id })));
+}
+
+async function inserirQuestoes(supabase, exercicioId, questoes) {
+  for (const [ordem, questao] of questoes.entries()) {
+    const { data: questaoCriada, error: questaoError } = await supabase
+      .from('questoes')
+      .insert({
+        exercicio_id: exercicioId,
+        enunciado: questao.enunciado,
+        tipo: questao.tipo || 'multipla_escolha',
+        ordem,
+        midia_url: questao.midia_url || null,
+        midia_tipo: questao.midia_url ? questao.midia_tipo || 'imagem' : null,
+      })
+      .select()
+      .single();
+    if (questaoError) return { error: questaoError };
+
+    const alternativas = (questao.alternativas || []).map((a) => ({
+      questao_id: questaoCriada.id,
+      texto: a.texto,
+      correta: !!a.correta,
+    }));
+    if (alternativas.length > 0) {
+      const { error: alternativasError } = await supabase.from('alternativas').insert(alternativas);
+      if (alternativasError) return { error: alternativasError };
+    }
+  }
+  return { error: null };
+}
+
+function validarPayload(body) {
+  const { titulo, disciplina, questoes, aluno_ids } = body;
+  if (!titulo || !disciplina || !Array.isArray(questoes) || questoes.length === 0) {
+    return 'Campos obrigatórios: titulo, disciplina, questoes (lista não vazia)';
+  }
+  if (!Array.isArray(aluno_ids) || aluno_ids.length === 0) {
+    return 'Selecione ao menos um aluno para receber o exercício';
+  }
+  return null;
+}
+
 router.get('/', requireAuth, async (req, res) => {
   const { data: exercicios, error } = await req.supabase
     .from('exercicios')
@@ -58,7 +102,7 @@ router.get('/', requireAuth, async (req, res) => {
 router.get('/:id', requireAuth, async (req, res) => {
   const { data: exercicio, error } = await req.supabase
     .from('exercicios')
-    .select('id, titulo, disciplina, serie, criado_por, created_at')
+    .select('id, titulo, disciplina, serie, midia_url, midia_tipo, criado_por, created_at')
     .eq('id', req.params.id)
     .single();
   if (error) return res.status(404).json({ error: 'Exercício não encontrado' });
@@ -80,65 +124,69 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 router.post('/', requireAuth, async (req, res) => {
-  const { titulo, disciplina, serie, questoes, aluno_ids } = req.body;
-  if (!titulo || !disciplina || !Array.isArray(questoes) || questoes.length === 0) {
-    return res.status(400).json({ error: 'Campos obrigatórios: titulo, disciplina, questoes (lista não vazia)' });
-  }
-  if (!Array.isArray(aluno_ids) || aluno_ids.length === 0) {
-    return res.status(400).json({ error: 'Selecione ao menos um aluno para receber o exercício' });
-  }
+  const erroValidacao = validarPayload(req.body);
+  if (erroValidacao) return res.status(400).json({ error: erroValidacao });
+  const { titulo, disciplina, serie, midia_url, midia_tipo, questoes, aluno_ids } = req.body;
 
   const { data: exercicio, error: exercicioError } = await req.supabase
     .from('exercicios')
-    .insert({ titulo, disciplina, serie: serie || null, criado_por: req.user.id })
+    .insert({
+      titulo,
+      disciplina,
+      serie: serie || null,
+      midia_url: midia_url || null,
+      midia_tipo: midia_url ? midia_tipo || 'imagem' : null,
+      criado_por: req.user.id,
+    })
     .select()
     .single();
   if (exercicioError) return res.status(400).json({ error: exercicioError.message });
 
-  const { error: vinculoError } = await req.supabase
-    .from('exercicio_alunos')
-    .insert(aluno_ids.map((aluno_id) => ({ exercicio_id: exercicio.id, aluno_id })));
+  const { error: vinculoError } = await vincularAlunos(req.supabase, exercicio.id, aluno_ids);
   if (vinculoError) return res.status(400).json({ error: vinculoError.message });
 
-  for (const [ordem, questao] of questoes.entries()) {
-    const { data: questaoCriada, error: questaoError } = await req.supabase
-      .from('questoes')
-      .insert({
-        exercicio_id: exercicio.id,
-        enunciado: questao.enunciado,
-        tipo: questao.tipo || 'multipla_escolha',
-        ordem,
-        midia_url: questao.midia_url || null,
-        midia_tipo: questao.midia_url ? questao.midia_tipo || 'imagem' : null,
-      })
-      .select()
-      .single();
-    if (questaoError) return res.status(400).json({ error: questaoError.message });
-
-    const alternativas = (questao.alternativas || []).map((a) => ({
-      questao_id: questaoCriada.id,
-      texto: a.texto,
-      correta: !!a.correta,
-    }));
-    if (alternativas.length > 0) {
-      const { error: alternativasError } = await req.supabase.from('alternativas').insert(alternativas);
-      if (alternativasError) return res.status(400).json({ error: alternativasError.message });
-    }
-  }
+  const { error: questoesError } = await inserirQuestoes(req.supabase, exercicio.id, questoes);
+  if (questoesError) return res.status(400).json({ error: questoesError.message });
 
   res.status(201).json(exercicio);
 });
 
+// edição substitui questões, alternativas e atribuições por completo, para
+// garantir que todos os alunos fiquem com a mesma versão do exercício —
+// como consequência, respostas antigas dessas questões são apagadas (cascade).
 router.put('/:id', requireAuth, async (req, res) => {
-  const { titulo, disciplina, serie } = req.body;
-  const { data, error } = await req.supabase
+  const erroValidacao = validarPayload(req.body);
+  if (erroValidacao) return res.status(400).json({ error: erroValidacao });
+  const { titulo, disciplina, serie, midia_url, midia_tipo, questoes, aluno_ids } = req.body;
+
+  const { error: updateError } = await req.supabase
     .from('exercicios')
-    .update({ titulo, disciplina, serie })
-    .eq('id', req.params.id)
-    .select()
-    .single();
-  if (error) return res.status(400).json({ error: error.message });
-  res.json(data);
+    .update({
+      titulo,
+      disciplina,
+      serie: serie || null,
+      midia_url: midia_url || null,
+      midia_tipo: midia_url ? midia_tipo || 'imagem' : null,
+    })
+    .eq('id', req.params.id);
+  if (updateError) return res.status(400).json({ error: updateError.message });
+
+  const { error: delQuestoesError } = await req.supabase.from('questoes').delete().eq('exercicio_id', req.params.id);
+  if (delQuestoesError) return res.status(400).json({ error: delQuestoesError.message });
+
+  const { error: delAlunosError } = await req.supabase
+    .from('exercicio_alunos')
+    .delete()
+    .eq('exercicio_id', req.params.id);
+  if (delAlunosError) return res.status(400).json({ error: delAlunosError.message });
+
+  const { error: vinculoError } = await vincularAlunos(req.supabase, req.params.id, aluno_ids);
+  if (vinculoError) return res.status(400).json({ error: vinculoError.message });
+
+  const { error: questoesError } = await inserirQuestoes(req.supabase, req.params.id, questoes);
+  if (questoesError) return res.status(400).json({ error: questoesError.message });
+
+  res.json({ id: req.params.id });
 });
 
 router.delete('/:id', requireAuth, async (req, res) => {

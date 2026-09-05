@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import styles from './CriarExercicio.module.css';
@@ -14,15 +14,20 @@ function questaoVazia() {
 }
 
 export function CriarExercicio() {
+  const { id } = useParams();
+  const edicao = Boolean(id);
   const { token } = useAuth();
   const navigate = useNavigate();
   const [titulo, setTitulo] = useState('');
   const [disciplina, setDisciplina] = useState('portugues');
   const [serie, setSerie] = useState('');
+  const [midiaUrl, setMidiaUrl] = useState('');
+  const [midiaTipo, setMidiaTipo] = useState('imagem');
   const [questoes, setQuestoes] = useState([questaoVazia()]);
   const [alunos, setAlunos] = useState(null);
   const [alunoIds, setAlunoIds] = useState([]);
   const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(edicao);
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
@@ -31,6 +36,30 @@ export function CriarExercicio() {
       .then(setAlunos)
       .catch((err) => setErro(err.message));
   }, [token]);
+
+  useEffect(() => {
+    if (!edicao) return;
+    api
+      .getExercicio(id, token)
+      .then((ex) => {
+        setTitulo(ex.titulo);
+        setDisciplina(ex.disciplina);
+        setSerie(ex.serie || '');
+        setMidiaUrl(ex.midia_url || '');
+        setMidiaTipo(ex.midia_tipo || 'imagem');
+        setQuestoes(
+          ex.questoes.map((q) => ({
+            enunciado: q.enunciado,
+            midia_url: q.midia_url || '',
+            midia_tipo: q.midia_tipo || 'imagem',
+            alternativas: q.alternativas.map((a) => ({ texto: a.texto, correta: a.correta })),
+          }))
+        );
+        setAlunoIds(ex.alunos.map((a) => a.id));
+      })
+      .catch((err) => setErro(err.message))
+      .finally(() => setCarregando(false));
+  }, [edicao, id, token]);
 
   function atualizarQuestao(i, campo, valor) {
     setQuestoes((qs) => qs.map((q, idx) => (idx === i ? { ...q, [campo]: valor } : q)));
@@ -66,8 +95,8 @@ export function CriarExercicio() {
     setQuestoes((qs) => qs.filter((_, idx) => idx !== i));
   }
 
-  function alternarAluno(id) {
-    setAlunoIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  function alternarAluno(alunoId) {
+    setAlunoIds((ids) => (ids.includes(alunoId) ? ids.filter((x) => x !== alunoId) : [...ids, alunoId]));
   }
 
   async function enviar(e) {
@@ -79,7 +108,16 @@ export function CriarExercicio() {
     }
     setSalvando(true);
     try {
-      const exercicio = await api.criarExercicio({ titulo, disciplina, serie, questoes, aluno_ids: alunoIds }, token);
+      const payload = {
+        titulo,
+        disciplina,
+        serie,
+        midia_url: midiaUrl,
+        midia_tipo: midiaTipo,
+        questoes,
+        aluno_ids: alunoIds,
+      };
+      const exercicio = edicao ? await api.atualizarExercicio(id, payload, token) : await api.criarExercicio(payload, token);
       navigate(`/professor/${exercicio.id}/resultados`);
     } catch (err) {
       setErro(err.message);
@@ -88,9 +126,11 @@ export function CriarExercicio() {
     }
   }
 
+  if (carregando) return <p className={styles.pagina}>Carregando...</p>;
+
   return (
     <div className={styles.pagina}>
-      <h1>Novo exercício</h1>
+      <h1>{edicao ? 'Editar exercício' : 'Novo exercício'}</h1>
       <form onSubmit={enviar} className={styles.form}>
         <label>
           Título
@@ -109,6 +149,26 @@ export function CriarExercicio() {
             Série
             <input value={serie} onChange={(e) => setSerie(e.target.value)} placeholder="ex: 5 ano" />
           </label>
+        </div>
+
+        <div className={styles.linha}>
+          <label>
+            Mídia principal do exercício (link, opcional)
+            <input
+              value={midiaUrl}
+              onChange={(e) => setMidiaUrl(e.target.value)}
+              placeholder="https://... (ex: 1 vídeo com várias questões)"
+            />
+          </label>
+          {midiaUrl && (
+            <label>
+              Tipo
+              <select value={midiaTipo} onChange={(e) => setMidiaTipo(e.target.value)}>
+                <option value="imagem">Imagem</option>
+                <option value="video">Vídeo (YouTube)</option>
+              </select>
+            </label>
+          )}
         </div>
 
         <fieldset className={styles.questao}>
@@ -145,7 +205,7 @@ export function CriarExercicio() {
 
             <div className={styles.linha}>
               <label>
-                Imagem ou vídeo (link, opcional)
+                Imagem ou vídeo desta questão (link, opcional)
                 <input
                   value={questao.midia_url}
                   onChange={(e) => atualizarQuestao(qi, 'midia_url', e.target.value)}
@@ -210,15 +270,27 @@ export function CriarExercicio() {
           + adicionar questão
         </button>
 
+        {edicao && (
+          <p className={styles.dica}>
+            Salvar substitui as questões atuais — os alunos ficam todos com a mesma versão nova do exercício, e
+            respostas já dadas para as questões antigas são apagadas.
+          </p>
+        )}
+
         {erro && (
           <p className={styles.erro} role="alert">
             {erro}
           </p>
         )}
 
-        <button type="submit" className={styles.botaoPrincipal} disabled={salvando}>
-          {salvando ? 'Salvando...' : 'Salvar exercício'}
-        </button>
+        <div className={styles.linha}>
+          <button type="submit" className={styles.botaoPrincipal} disabled={salvando}>
+            {salvando ? 'Salvando...' : 'Salvar exercício'}
+          </button>
+          <Link to={edicao ? `/professor/${id}/resultados` : '/professor/exercicios'} className={styles.botaoCancelar}>
+            Cancelar
+          </Link>
+        </div>
       </form>
     </div>
   );
