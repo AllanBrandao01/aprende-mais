@@ -1,0 +1,102 @@
+<svg viewBox="0 0 900 1180" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Diagrama de metodologia da Atividade Extensionista II</title>
+<desc>Fluxograma com as etapas técnicas do desenvolvimento da plataforma web, do levantamento de requisitos até a documentação final, usando Node.js, Express, React e PostgreSQL.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="900" height="1180" fill="#ffffff"/>
+
+<!-- connectors -->
+<g stroke="#334155" stroke-width="2" fill="none" marker-end="url(#arrow)">
+<line x1="450" y1="60" x2="450" y2="88"/>
+<line x1="450" y1="145" x2="450" y2="173"/>
+<line x1="450" y1="230" x2="450" y2="258"/>
+<line x1="450" y1="315" x2="450" y2="343"/>
+<line x1="450" y1="400" x2="450" y2="428"/>
+<line x1="450" y1="485" x2="450" y2="513"/>
+<line x1="450" y1="570" x2="450" y2="592"/>
+<line x1="450" y1="712" x2="450" y2="758"/>
+<line x1="450" y1="813" x2="270" y2="843"/>
+<line x1="450" y1="813" x2="650" y2="843"/>
+<line x1="270" y1="898" x2="430" y2="926"/>
+<line x1="650" y1="898" x2="470" y2="926"/>
+<line x1="450" y1="981" x2="450" y2="1009"/>
+<line x1="450" y1="1064" x2="450" y2="1090"/>
+<!-- reprovado loop -->
+<path d="M 322 650 C 150 650, 150 370, 340 370" />
+</g>
+<text x="180" y="510" font-family="Arial, sans-serif" font-size="15" fill="#334155" transform="rotate(-90 180 510)">Reprovado</text>
+<text x="500" y="800" font-family="Arial, sans-serif" font-size="15" fill="#334155">Aprovado</text>
+
+<!-- n1 Início -->
+<rect x="380" y="20" width="140" height="40" rx="20" fill="#1e3a5f" stroke="#1e3a5f"/>
+<text x="450" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#ffffff">Início do Projeto</text>
+
+<!-- n2 -->
+<rect x="270" y="88" width="360" height="57" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Levantamento de Requisitos Técnicos</text>
+<text x="450" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">6 dias</text>
+
+<!-- n3 -->
+<rect x="270" y="173" width="360" height="57" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="197" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Modelagem do Banco de Dados — PostgreSQL</text>
+<text x="450" y="217" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">5 dias</text>
+
+<!-- n4 -->
+<rect x="270" y="258" width="360" height="57" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="282" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Prototipação da Interface Acessível — React</text>
+<text x="450" y="302" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">8 dias</text>
+
+<!-- n5 -->
+<rect x="270" y="343" width="360" height="57" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="367" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Desenvolvimento do Back-end — Node.js/Express</text>
+<text x="450" y="387" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">22 dias</text>
+
+<!-- n6 -->
+<rect x="270" y="428" width="360" height="57" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="452" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Desenvolvimento do Front-end — React</text>
+<text x="450" y="472" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">22 dias</text>
+
+<!-- n7 -->
+<rect x="270" y="513" width="360" height="57" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="537" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Integração Front-end / Back-end</text>
+<text x="450" y="557" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">9 dias</text>
+
+<!-- n8 diamond -->
+<polygon points="450,592 590,652 450,712 310,652" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="647" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#0f172a">Testes de Usabilidade</text>
+<text x="450" y="664" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#0f172a">e Acessibilidade (WCAG)</text>
+<text x="450" y="682" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#475569">8 dias / iteração</text>
+
+<!-- n9 -->
+<rect x="270" y="758" width="360" height="55" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="781" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Implantação Piloto na Escola</text>
+<text x="450" y="800" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">6 dias</text>
+
+<!-- n10 -->
+<rect x="90" y="843" width="360" height="55" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="270" y="866" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Avaliação com Alunos</text>
+<text x="270" y="885" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">6 dias</text>
+
+<!-- n11 -->
+<rect x="470" y="843" width="360" height="55" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="650" y="866" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Avaliação com Professores</text>
+<text x="650" y="885" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">6 dias</text>
+
+<!-- n12 -->
+<rect x="270" y="926" width="360" height="55" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="949" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Consolidação de Resultados e Feedback</text>
+<text x="450" y="968" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">3 dias</text>
+
+<!-- n13 -->
+<rect x="270" y="1009" width="360" height="55" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<text x="450" y="1032" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#0f172a">Vídeo + Documentação — GitHub</text>
+<text x="450" y="1051" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#475569">6 dias</text>
+
+<!-- n14 Fim -->
+<rect x="380" y="1090" width="140" height="40" rx="20" fill="#1e3a5f" stroke="#1e3a5f"/>
+<text x="450" y="1115" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#ffffff">Fim do Projeto</text>
+
+</svg>
