@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
+import { arquivoParaBase64 } from '../../lib/midia';
 import styles from './CriarExercicio.module.css';
 
 function questaoVazia() {
@@ -11,6 +12,40 @@ function questaoVazia() {
     midia_tipo: 'imagem',
     alternativas: [{ texto: '', correta: true }, { texto: '', correta: false }],
   };
+}
+
+function CampoMidia({ titulo, placeholder, url, tipo, onUrlChange, onTipoChange }) {
+  async function selecionarArquivo(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    onUrlChange(await arquivoParaBase64(file));
+    onTipoChange('imagem');
+  }
+
+  return (
+    <div className={styles.campoMidia}>
+      <div className={styles.linha}>
+        <label>
+          {titulo}
+          <input value={url} onChange={(e) => onUrlChange(e.target.value)} placeholder={placeholder} />
+        </label>
+        {url && (
+          <label>
+            Tipo
+            <select value={tipo} onChange={(e) => onTipoChange(e.target.value)}>
+              <option value="imagem">Imagem</option>
+              <option value="video">Vídeo (YouTube)</option>
+            </select>
+          </label>
+        )}
+      </div>
+      <label className={styles.uploadLabel}>
+        ou enviar imagem do computador
+        <input type="file" accept="image/*" onChange={selecionarArquivo} />
+      </label>
+      {url && tipo === 'imagem' && <img src={url} alt="Pré-visualização da mídia" className={styles.preview} />}
+    </div>
+  );
 }
 
 export function CriarExercicio() {
@@ -151,25 +186,14 @@ export function CriarExercicio() {
           </label>
         </div>
 
-        <div className={styles.linha}>
-          <label>
-            Mídia principal do exercício (link, opcional)
-            <input
-              value={midiaUrl}
-              onChange={(e) => setMidiaUrl(e.target.value)}
-              placeholder="https://... (ex: 1 vídeo com várias questões)"
-            />
-          </label>
-          {midiaUrl && (
-            <label>
-              Tipo
-              <select value={midiaTipo} onChange={(e) => setMidiaTipo(e.target.value)}>
-                <option value="imagem">Imagem</option>
-                <option value="video">Vídeo (YouTube)</option>
-              </select>
-            </label>
-          )}
-        </div>
+        <CampoMidia
+          titulo="Mídia principal do exercício (opcional)"
+          placeholder="https://... (ex: 1 vídeo com várias questões)"
+          url={midiaUrl}
+          tipo={midiaTipo}
+          onUrlChange={setMidiaUrl}
+          onTipoChange={setMidiaTipo}
+        />
 
         <fieldset className={styles.questao}>
           <legend>Direcionar para</legend>
@@ -203,25 +227,14 @@ export function CriarExercicio() {
               />
             </label>
 
-            <div className={styles.linha}>
-              <label>
-                Imagem ou vídeo desta questão (link, opcional)
-                <input
-                  value={questao.midia_url}
-                  onChange={(e) => atualizarQuestao(qi, 'midia_url', e.target.value)}
-                  placeholder="https://..."
-                />
-              </label>
-              {questao.midia_url && (
-                <label>
-                  Tipo
-                  <select value={questao.midia_tipo} onChange={(e) => atualizarQuestao(qi, 'midia_tipo', e.target.value)}>
-                    <option value="imagem">Imagem</option>
-                    <option value="video">Vídeo (YouTube)</option>
-                  </select>
-                </label>
-              )}
-            </div>
+            <CampoMidia
+              titulo="Imagem ou vídeo desta questão (opcional)"
+              placeholder="https://..."
+              url={questao.midia_url}
+              tipo={questao.midia_tipo}
+              onUrlChange={(v) => atualizarQuestao(qi, 'midia_url', v)}
+              onTipoChange={(v) => atualizarQuestao(qi, 'midia_tipo', v)}
+            />
 
             <p className={styles.dica}>Marque a alternativa correta:</p>
             {questao.alternativas.map((alt, ai) => (

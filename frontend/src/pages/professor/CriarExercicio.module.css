@@ -41,6 +41,33 @@
   min-width: 0;
 }
 
+.campoMidia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uploadLabel {
+  font-size: 13px;
+  color: #475569;
+}
+
+.uploadLabel input {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  padding: 0;
+  border: none;
+}
+
+.preview {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  object-fit: contain;
+}
+
 .questao {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
