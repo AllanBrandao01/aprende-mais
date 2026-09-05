@@ -2,6 +2,7 @@
 -- Rode em: SQL Editor > New query > Run. Reexecutável — remove e recria tudo.
 
 drop view if exists public.resultados;
+drop function if exists public.is_professor();
 drop table if exists public.respostas_aluno cascade;
 drop table if exists public.alternativas cascade;
 drop table if exists public.questoes cascade;
@@ -70,6 +71,25 @@ from public.respostas_aluno ra
 join public.questoes q on q.id = ra.questao_id
 group by ra.aluno_id, q.exercicio_id;
 
+-- necessário porque "Automatically expose new tables" está desativado no projeto:
+-- sem isso, nem o service_role tem acesso à tabela (o RLS é uma camada por cima disso).
+grant usage on schema public to authenticated, service_role;
+grant all on public.profiles, public.exercicios, public.questoes, public.alternativas, public.respostas_aluno to service_role;
+grant select, insert, update, delete on public.profiles, public.exercicios, public.questoes, public.alternativas, public.respostas_aluno to authenticated;
+grant select on public.resultados to authenticated, service_role;
+
+-- security definer: roda com privilégio elevado, então consultar profiles aqui
+-- dentro não reaciona o RLS de profiles (evita recursão infinita na policy).
+create function public.is_professor()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (select 1 from public.profiles where id = auth.uid() and tipo = 'professor');
+$$;
+
 alter table public.profiles enable row level security;
 alter table public.exercicios enable row level security;
 alter table public.questoes enable row level security;
@@ -77,10 +97,7 @@ alter table public.alternativas enable row level security;
 alter table public.respostas_aluno enable row level security;
 
 create policy "profiles_select_own_or_professor" on public.profiles
-  for select using (
-    auth.uid() = id
-    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.tipo = 'professor')
-  );
+  for select using (auth.uid() = id or public.is_professor());
 create policy "profiles_insert_own" on public.profiles
   for insert with check (auth.uid() = id);
 create policy "profiles_update_own" on public.profiles
@@ -89,9 +106,7 @@ create policy "profiles_update_own" on public.profiles
 create policy "exercicios_select_authenticated" on public.exercicios
   for select using (auth.role() = 'authenticated');
 create policy "exercicios_insert_professor" on public.exercicios
-  for insert with check (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.tipo = 'professor')
-  );
+  for insert with check (public.is_professor());
 create policy "exercicios_update_own" on public.exercicios
   for update using (criado_por = auth.uid());
 create policy "exercicios_delete_own" on public.exercicios
@@ -116,9 +131,6 @@ create policy "alternativas_write_owner" on public.alternativas
   );
 
 create policy "respostas_select_own_or_professor" on public.respostas_aluno
-  for select using (
-    aluno_id = auth.uid()
-    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.tipo = 'professor')
-  );
+  for select using (aluno_id = auth.uid() or public.is_professor());
 create policy "respostas_insert_own" on public.respostas_aluno
   for insert with check (aluno_id = auth.uid());
