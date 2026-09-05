@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
@@ -8,6 +8,7 @@ export function Alunos() {
   const { token } = useAuth();
   const [alunos, setAlunos] = useState(null);
   const [erro, setErro] = useState('');
+  const [filtroTurma, setFiltroTurma] = useState('todas');
 
   useEffect(() => {
     api
@@ -16,19 +17,46 @@ export function Alunos() {
       .catch((err) => setErro(err.message));
   }, [token]);
 
+  const turmas = useMemo(() => {
+    if (!alunos) return [];
+    return [...new Set(alunos.map((a) => a.turma).filter(Boolean))].sort();
+  }, [alunos]);
+
+  const alunosFiltrados = alunos?.filter((a) => filtroTurma === 'todas' || a.turma === filtroTurma);
+
   return (
     <div className={styles.pagina}>
-      <h1>Alunos</h1>
+      <div className={styles.cabecalho}>
+        <h1>Alunos</h1>
+        <Link to="/professor/alunos/novo" className={styles.botaoNovo}>
+          + Novo aluno
+        </Link>
+      </div>
 
       {erro && (
         <p className={styles.erro} role="alert">
           {erro}
         </p>
       )}
+
+      {turmas.length > 1 && (
+        <label className={styles.filtro}>
+          Turma
+          <select value={filtroTurma} onChange={(e) => setFiltroTurma(e.target.value)}>
+            <option value="todas">Todas</option>
+            {turmas.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
       {alunos?.length === 0 && <p>Nenhum aluno cadastrado ainda.</p>}
 
       <div className={styles.lista}>
-        {alunos?.map((aluno) => (
+        {alunosFiltrados?.map((aluno) => (
           <Link to={`/professor/alunos/${aluno.id}`} key={aluno.id} className={styles.cartao}>
             <div>
               <strong>{aluno.nome}</strong>

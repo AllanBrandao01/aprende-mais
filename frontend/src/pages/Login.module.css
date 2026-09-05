@@ -33,28 +33,6 @@
   font-size: 15px;
 }
 
-.tabs {
-  display: flex;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.tabs button {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  background: #ffffff;
-  color: #334155;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.tabs button.ativo {
-  background: #1e3a5f;
-  color: #ffffff;
-}
-
 label {
   display: flex;
   flex-direction: column;

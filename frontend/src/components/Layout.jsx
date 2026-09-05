@@ -31,6 +31,12 @@ export function Layout() {
         {user?.tipo === 'professor' && (
           <nav className={styles.nav} aria-label="Navegação principal">
             <NavLink to="/professor" end className={({ isActive }) => (isActive ? styles.navAtivo : styles.navLink)}>
+              Início
+            </NavLink>
+            <NavLink
+              to="/professor/exercicios"
+              className={({ isActive }) => (isActive ? styles.navAtivo : styles.navLink)}
+            >
               Exercícios
             </NavLink>
             <NavLink to="/professor/alunos" className={({ isActive }) => (isActive ? styles.navAtivo : styles.navLink)}>

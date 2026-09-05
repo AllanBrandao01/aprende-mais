@@ -20,16 +20,12 @@ export function AuthProvider({ children }) {
     persist({ token: data.access_token, user: data.user });
   }
 
-  async function register(payload) {
-    await api.register(payload);
-  }
-
   function logout() {
     persist(null);
   }
 
   return (
-    <AuthContext.Provider value={{ user: session?.user, token: session?.token, login, register, logout }}>
+    <AuthContext.Provider value={{ user: session?.user, token: session?.token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

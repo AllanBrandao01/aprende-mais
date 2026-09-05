@@ -4,12 +4,55 @@ import { requireAuth } from '../middleware/auth.js';
 const router = Router();
 
 router.get('/', requireAuth, async (req, res) => {
-  const { data, error } = await req.supabase
+  const { data: exercicios, error } = await req.supabase
     .from('exercicios')
     .select('id, titulo, disciplina, serie, criado_por, created_at')
     .order('created_at', { ascending: false });
   if (error) return res.status(400).json({ error: error.message });
-  res.json(data);
+  if (exercicios.length === 0) return res.json([]);
+
+  const ids = exercicios.map((e) => e.id);
+  const { data: questoes, error: questoesError } = await req.supabase
+    .from('questoes')
+    .select('id, exercicio_id')
+    .in('exercicio_id', ids);
+  if (questoesError) return res.status(400).json({ error: questoesError.message });
+
+  const { data: minhasRespostas, error: respostasError } = await req.supabase
+    .from('respostas_aluno')
+    .select('questao_id, correta')
+    .eq('aluno_id', req.user.id);
+  if (respostasError) return res.status(400).json({ error: respostasError.message });
+
+  const exercicioDaQuestao = {};
+  const totalPorExercicio = {};
+  questoes.forEach((q) => {
+    exercicioDaQuestao[q.id] = q.exercicio_id;
+    totalPorExercicio[q.exercicio_id] = (totalPorExercicio[q.exercicio_id] || 0) + 1;
+  });
+
+  const respondidasPorExercicio = {};
+  const acertosPorExercicio = {};
+  minhasRespostas.forEach((r) => {
+    const exId = exercicioDaQuestao[r.questao_id];
+    if (!exId) return;
+    respondidasPorExercicio[exId] = (respondidasPorExercicio[exId] || 0) + 1;
+    if (r.correta) acertosPorExercicio[exId] = (acertosPorExercicio[exId] || 0) + 1;
+  });
+
+  res.json(
+    exercicios.map((e) => {
+      const total = totalPorExercicio[e.id] || 0;
+      const respondidas = respondidasPorExercicio[e.id] || 0;
+      return {
+        ...e,
+        total_questoes: total,
+        respondidas,
+        concluido: total > 0 && respondidas >= total,
+        percentual: respondidas > 0 ? Math.round((100 * (acertosPorExercicio[e.id] || 0)) / respondidas) : null,
+      };
+    })
+  );
 });
 
 router.get('/:id', requireAuth, async (req, res) => {

@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { supabaseAdmin } from '../config/supabaseAdmin.js';
+import { emailDoUsuario } from '../lib/usuario.js';
 
 const router = Router();
 
@@ -11,6 +13,45 @@ router.get('/', requireAuth, async (req, res) => {
     .order('nome', { ascending: true });
   if (error) return res.status(400).json({ error: error.message });
   res.json(data);
+});
+
+// só o professor cadastra alunos — evita depender da criança se autocadastrar
+router.post('/', requireAuth, async (req, res) => {
+  const { data: chamador, error: chamadorError } = await req.supabase
+    .from('profiles')
+    .select('tipo')
+    .eq('id', req.user.id)
+    .single();
+  if (chamadorError || chamador.tipo !== 'professor') {
+    return res.status(403).json({ error: 'Apenas professores podem cadastrar alunos' });
+  }
+
+  const { nome, usuario, password, turma } = req.body;
+  if (!nome || !usuario || !password || !/^[a-z0-9._-]+$/i.test(usuario)) {
+    return res
+      .status(400)
+      .json({ error: 'Campos obrigatórios: nome, usuario (letras, números, ponto, traço ou underline), password' });
+  }
+
+  const usuarioFinal = usuario.toLowerCase();
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    email: emailDoUsuario(usuarioFinal),
+    password,
+    email_confirm: true,
+  });
+  if (error) {
+    if (error.message.includes('already been registered')) {
+      return res.status(400).json({ error: 'Nome de usuário já em uso' });
+    }
+    return res.status(400).json({ error: error.message });
+  }
+
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .insert({ id: data.user.id, nome, tipo: 'aluno', turma: turma || null, usuario: usuarioFinal });
+  if (profileError) return res.status(400).json({ error: profileError.message });
+
+  res.status(201).json({ id: data.user.id, nome, turma: turma || null, usuario: usuarioFinal, situacao: 'em_reforco' });
 });
 
 router.patch('/:id', requireAuth, async (req, res) => {

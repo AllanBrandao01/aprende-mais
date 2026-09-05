@@ -69,6 +69,9 @@ export function Responder() {
 
   return (
     <div className={styles.pagina}>
+      <Link to="/aluno" className={styles.voltar}>
+        ← Voltar aos exercícios
+      </Link>
       <p className={styles.progresso}>
         Questão {indice + 1} de {exercicio.questoes.length}
       </p>

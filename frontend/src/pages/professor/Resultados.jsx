@@ -22,7 +22,7 @@ export function Resultados() {
 
   return (
     <div className={styles.pagina}>
-      <Link to="/professor" className={styles.voltar}>
+      <Link to="/professor/exercicios" className={styles.voltar}>
         ← Meus exercícios
       </Link>
 
