@@ -24,8 +24,14 @@ export function AuthProvider({ children }) {
     persist(null);
   }
 
+  function atualizarUsuario(patch) {
+    persist({ ...session, user: { ...session.user, ...patch } });
+  }
+
   return (
-    <AuthContext.Provider value={{ user: session?.user, token: session?.token, login, logout }}>
+    <AuthContext.Provider
+      value={{ user: session?.user, token: session?.token, login, logout, atualizarUsuario }}
+    >
       {children}
     </AuthContext.Provider>
   );

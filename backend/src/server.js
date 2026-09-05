@@ -5,6 +5,7 @@ import healthRouter from './routes/health.js';
 import authRouter from './routes/auth.js';
 import exerciciosRouter from './routes/exercicios.js';
 import alunosRouter from './routes/alunos.js';
+import professoresRouter from './routes/professores.js';
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/exercicios', exerciciosRouter);
 app.use('/api/alunos', alunosRouter);
+app.use('/api/professores', professoresRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

@@ -18,10 +18,10 @@ export function Login() {
     setErro('');
     setCarregando(true);
     try {
-      if (tipo === 'professor') {
-        await login({ email, password });
-      } else {
+      if (tipo === 'aluno') {
         await login({ usuario, password });
+      } else {
+        await login({ email, password });
       }
       navigate('/');
     } catch (err) {
@@ -42,10 +42,11 @@ export function Login() {
           <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
             <option value="aluno">Aluno</option>
             <option value="professor">Professor</option>
+            <option value="diretor">Diretor</option>
           </select>
         </label>
 
-        {tipo === 'professor' ? (
+        {tipo !== 'aluno' ? (
           <label>
             E-mail
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />

@@ -4,6 +4,7 @@
 
 import { supabaseAdmin } from '../src/config/supabaseAdmin.js';
 
+const DIRETOR = { email: 'diretor.teste@gmail.com', senha: 'aprende123', nome: 'Diretor Teste', senhaTemporaria: true };
 const PROFESSOR = { email: 'professor.teste@gmail.com', senha: 'senha123456', nome: 'Professor Teste' };
 const ALUNOS = [
   { email: 'ana@aprendemais.local', senha: 'senha123456', nome: 'Ana Silva', usuario: 'ana', turma: '5A' },
@@ -25,7 +26,7 @@ for (const email of EMAILS_DESCARTAR) {
 await supabaseAdmin.from('exercicios').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 console.log('exercícios antigos removidos');
 
-async function garantirUsuario({ email, senha, nome, tipo, usuario, turma }) {
+async function garantirUsuario({ email, senha, nome, tipo, usuario, turma, senhaTemporaria }) {
   const { data } = await supabaseAdmin.auth.admin.listUsers();
   let usuarioAuth = data.users.find((x) => x.email === email);
   if (!usuarioAuth) {
@@ -33,14 +34,20 @@ async function garantirUsuario({ email, senha, nome, tipo, usuario, turma }) {
     if (error) throw new Error(`${email}: ${error.message}`);
     usuarioAuth = criado.user;
   }
-  const { error: profileError } = await supabaseAdmin
-    .from('profiles')
-    .upsert({ id: usuarioAuth.id, nome, tipo, usuario: usuario || null, turma: turma || null });
+  const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+    id: usuarioAuth.id,
+    nome,
+    tipo,
+    usuario: usuario || null,
+    turma: turma || null,
+    senha_temporaria: !!senhaTemporaria,
+  });
   if (profileError) throw new Error(`${email}: ${profileError.message}`);
   console.log(`${email}: ok`);
   return usuarioAuth.id;
 }
 
+await garantirUsuario({ ...DIRETOR, tipo: 'diretor' });
 const professorId = await garantirUsuario({ ...PROFESSOR, tipo: 'professor' });
 const alunoIds = {};
 for (const aluno of ALUNOS) {

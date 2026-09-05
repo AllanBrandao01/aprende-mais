@@ -17,6 +17,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
 
 export const api = {
   login: (payload) => request('/auth/login', { method: 'POST', body: payload }),
+  trocarSenha: (novaSenha, token) => request('/auth/senha', { method: 'PATCH', body: { novaSenha }, token }),
   listExercicios: (token) => request('/exercicios', { token }),
   getExercicio: (id, token) => request(`/exercicios/${id}`, { token }),
   criarExercicio: (payload, token) => request('/exercicios', { method: 'POST', body: payload, token }),
@@ -30,4 +31,6 @@ export const api = {
   atualizarSituacao: (alunoId, situacao, token) =>
     request(`/alunos/${alunoId}`, { method: 'PATCH', body: { situacao }, token }),
   evolucaoAluno: (alunoId, token) => request(`/alunos/${alunoId}/evolucao`, { token }),
+  listProfessores: (token) => request('/professores', { token }),
+  criarProfessor: (payload, token) => request('/professores', { method: 'POST', body: payload, token }),
 };

@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
+import { TrocarSenha } from './pages/TrocarSenha';
 import { Dashboard } from './pages/professor/Dashboard';
 import { ExerciciosListProfessor } from './pages/professor/ExerciciosList';
 import { CriarExercicio } from './pages/professor/CriarExercicio';
@@ -14,6 +15,8 @@ import { NovoAluno } from './pages/professor/NovoAluno';
 import { EvolucaoAluno } from './pages/professor/EvolucaoAluno';
 import { ExerciciosListAluno } from './pages/aluno/ExerciciosList';
 import { Responder } from './pages/aluno/Responder';
+import { Professores } from './pages/diretor/Professores';
+import { NovoProfessor } from './pages/diretor/NovoProfessor';
 
 function App() {
   return (
@@ -22,6 +25,14 @@ function App() {
         <PreferenciasProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route
+              path="/trocar-senha"
+              element={
+                <ProtectedRoute permitirSenhaTemporaria>
+                  <TrocarSenha />
+                </ProtectedRoute>
+              }
+            />
             <Route
               element={
                 <ProtectedRoute>
@@ -40,6 +51,8 @@ function App() {
               <Route path="/professor/alunos/:id" element={<EvolucaoAluno />} />
               <Route path="/aluno" element={<ExerciciosListAluno />} />
               <Route path="/aluno/:id" element={<Responder />} />
+              <Route path="/diretor" element={<Professores />} />
+              <Route path="/diretor/novo" element={<NovoProfessor />} />
             </Route>
           </Routes>
         </PreferenciasProvider>

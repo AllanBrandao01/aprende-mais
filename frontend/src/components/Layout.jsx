@@ -46,6 +46,13 @@ export function Layout() {
             </NavLink>
           </nav>
         )}
+        {user?.tipo === 'diretor' && (
+          <nav className={styles.nav} aria-label="Navegação principal">
+            <NavLink to="/diretor" end className={({ isActive }) => (isActive ? styles.navAtivo : styles.navLink)}>
+              Professores
+            </NavLink>
+          </nav>
+        )}
       </header>
       <main id="conteudo" style={{ zoom: escala }}>
         <Outlet />

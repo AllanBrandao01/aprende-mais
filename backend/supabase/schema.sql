@@ -4,6 +4,7 @@
 drop view if exists public.resultados;
 drop function if exists public.pode_ver_exercicio(uuid) cascade;
 drop function if exists public.is_professor() cascade;
+drop function if exists public.is_diretor() cascade;
 drop table if exists public.exercicio_alunos cascade;
 drop table if exists public.respostas_aluno cascade;
 drop table if exists public.alternativas cascade;
@@ -16,7 +17,7 @@ drop type if exists public.tipo_usuario;
 drop type if exists public.tipo_midia;
 drop type if exists public.situacao_aluno;
 
-create type public.tipo_usuario as enum ('aluno', 'professor');
+create type public.tipo_usuario as enum ('aluno', 'professor', 'diretor');
 create type public.disciplina as enum ('portugues', 'matematica');
 create type public.tipo_questao as enum ('multipla_escolha', 'verdadeiro_falso');
 create type public.tipo_midia as enum ('imagem', 'video');
@@ -30,6 +31,9 @@ create table public.profiles (
   turma text,
   usuario text unique,
   situacao public.situacao_aluno not null default 'em_reforco',
+  -- true quando a conta foi criada por outra pessoa com senha padrão —
+  -- obriga a troca de senha antes de liberar o resto do sistema
+  senha_temporaria boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -121,6 +125,16 @@ as $$
   select exists (select 1 from public.profiles where id = auth.uid() and tipo = 'professor');
 $$;
 
+create function public.is_diretor()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (select 1 from public.profiles where id = auth.uid() and tipo = 'diretor');
+$$;
+
 -- professor vê tudo; aluno só vê exercícios atribuídos a ele especificamente
 create function public.pode_ver_exercicio(ex_id uuid)
 returns boolean
@@ -141,8 +155,8 @@ alter table public.questoes enable row level security;
 alter table public.alternativas enable row level security;
 alter table public.respostas_aluno enable row level security;
 
-create policy "profiles_select_own_or_professor" on public.profiles
-  for select using (auth.uid() = id or public.is_professor());
+create policy "profiles_select_own_or_staff" on public.profiles
+  for select using (auth.uid() = id or public.is_professor() or public.is_diretor());
 create policy "profiles_insert_own" on public.profiles
   for insert with check (auth.uid() = id);
 -- só o professor edita perfis (inclui a situação de reforço do aluno) — o
