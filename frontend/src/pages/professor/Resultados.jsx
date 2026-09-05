@@ -26,7 +26,11 @@ export function Resultados() {
         ← Meus exercícios
       </Link>
 
-      {erro && <p className={styles.erro}>{erro}</p>}
+      {erro && (
+        <p className={styles.erro} role="alert">
+          {erro}
+        </p>
+      )}
       {exercicio && (
         <>
           <h1>{exercicio.titulo}</h1>

@@ -72,13 +72,6 @@ select {
   font-family: inherit;
 }
 
-input:focus,
-select:focus,
-button:focus-visible {
-  outline: 3px solid #7fb2e5;
-  outline-offset: 1px;
-}
-
 .botaoPrincipal {
   margin-top: 8px;
   padding: 14px;

@@ -50,11 +50,23 @@ export function Login() {
         <h1>Aprende+</h1>
         <p className={styles.subtitulo}>Reforço escolar de Português e Matemática</p>
 
-        <div className={styles.tabs}>
-          <button type="button" className={modo === 'login' ? styles.ativo : ''} onClick={() => mudarModo('login')}>
+        <div className={styles.tabs} role="tablist" aria-label="Entrar ou criar conta">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={modo === 'login'}
+            className={modo === 'login' ? styles.ativo : ''}
+            onClick={() => mudarModo('login')}
+          >
             Entrar
           </button>
-          <button type="button" className={modo === 'cadastro' ? styles.ativo : ''} onClick={() => mudarModo('cadastro')}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={modo === 'cadastro'}
+            className={modo === 'cadastro' ? styles.ativo : ''}
+            onClick={() => mudarModo('cadastro')}
+          >
             Criar conta
           </button>
         </div>
@@ -108,7 +120,11 @@ export function Login() {
           </label>
         )}
 
-        {erro && <p className={styles.mensagem}>{erro}</p>}
+        {erro && (
+          <p className={styles.mensagem} role="alert">
+            {erro}
+          </p>
+        )}
 
         <button type="submit" className={styles.botaoPrincipal} disabled={carregando}>
           {carregando ? 'Aguarde...' : modo === 'login' ? 'Entrar' : 'Criar conta'}

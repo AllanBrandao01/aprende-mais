@@ -7,11 +7,16 @@ export function Layout() {
 
   return (
     <div className={styles.app}>
+      <a href="#conteudo" className="pular-conteudo">
+        Pular para o conteúdo
+      </a>
       <header className={styles.header}>
         <span>Aprende+</span>
         <button onClick={logout}>Sair</button>
       </header>
-      <Outlet />
+      <main id="conteudo">
+        <Outlet />
+      </main>
     </div>
   );
 }

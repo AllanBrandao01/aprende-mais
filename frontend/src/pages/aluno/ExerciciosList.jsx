@@ -24,7 +24,11 @@ export function ExerciciosListAluno() {
         <h1>Exercícios disponíveis</h1>
       </div>
 
-      {erro && <p className={styles.erro}>{erro}</p>}
+      {erro && (
+        <p className={styles.erro} role="alert">
+          {erro}
+        </p>
+      )}
       {exercicios === null && !erro && <p>Carregando...</p>}
       {exercicios?.length === 0 && <p>Nenhum exercício disponível ainda.</p>}
 

@@ -101,26 +101,40 @@ export function CriarExercicio() {
             <p className={styles.dica}>Marque a alternativa correta:</p>
             {questao.alternativas.map((alt, ai) => (
               <div className={styles.alternativa} key={ai}>
-                <input
-                  type="radio"
-                  name={`correta-${qi}`}
-                  checked={alt.correta}
-                  onChange={() => marcarCorreta(qi, ai)}
-                />
+                <label className={styles.radioAlvo}>
+                  <input
+                    type="radio"
+                    name={`correta-${qi}`}
+                    checked={alt.correta}
+                    onChange={() => marcarCorreta(qi, ai)}
+                    aria-label={`Marcar alternativa ${ai + 1} da questão ${qi + 1} como correta`}
+                  />
+                </label>
                 <input
                   value={alt.texto}
                   onChange={(e) => atualizarAlternativa(qi, ai, e.target.value)}
                   placeholder={`Alternativa ${ai + 1}`}
+                  aria-label={`Texto da alternativa ${ai + 1} da questão ${qi + 1}`}
                   required
                 />
               </div>
             ))}
-            <button type="button" className={styles.linkBotao} onClick={() => adicionarAlternativa(qi)}>
+            <button
+              type="button"
+              className={styles.linkBotao}
+              onClick={() => adicionarAlternativa(qi)}
+              aria-label={`Adicionar alternativa à questão ${qi + 1}`}
+            >
               + alternativa
             </button>
 
             {questoes.length > 1 && (
-              <button type="button" className={styles.linkBotaoRemover} onClick={() => removerQuestao(qi)}>
+              <button
+                type="button"
+                className={styles.linkBotaoRemover}
+                onClick={() => removerQuestao(qi)}
+                aria-label={`Remover questão ${qi + 1}`}
+              >
                 remover questão
               </button>
             )}
@@ -131,7 +145,11 @@ export function CriarExercicio() {
           + adicionar questão
         </button>
 
-        {erro && <p className={styles.erro}>{erro}</p>}
+        {erro && (
+          <p className={styles.erro} role="alert">
+            {erro}
+          </p>
+        )}
 
         <button type="submit" className={styles.botaoPrincipal} disabled={salvando}>
           {salvando ? 'Salvando...' : 'Salvar exercício'}

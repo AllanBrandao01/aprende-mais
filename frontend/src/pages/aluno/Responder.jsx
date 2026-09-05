@@ -22,7 +22,11 @@ export function Responder() {
       .catch((err) => setErro(err.message));
   }, [id, token]);
 
-  if (erro) return <p className={styles.erro}>{erro}</p>;
+  if (erro) return (
+    <p className={styles.erro} role="alert">
+      {erro}
+    </p>
+  );
   if (!exercicio) return <p className={styles.pagina}>Carregando...</p>;
 
   const questao = exercicio.questoes[indice];
@@ -79,6 +83,7 @@ export function Responder() {
               key={alt.id}
               className={classe}
               disabled={selecionada !== null || enviando}
+              aria-pressed={escolhida}
               onClick={() => escolher(alt.id)}
             >
               {alt.texto}
@@ -89,7 +94,9 @@ export function Responder() {
 
       {feedback !== null && (
         <>
-          <p className={feedback ? styles.certa : styles.errada}>{feedback ? 'Certo!' : 'Não foi dessa vez.'}</p>
+          <p className={feedback ? styles.certa : styles.errada} role="status" aria-live="polite">
+            {feedback ? 'Certo!' : 'Não foi dessa vez.'}
+          </p>
           <button className={styles.botaoPrincipal} onClick={proxima}>
             {indice + 1 < exercicio.questoes.length ? 'Próxima questão' : 'Ver resultado'}
           </button>
