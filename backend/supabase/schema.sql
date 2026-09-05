@@ -68,13 +68,16 @@ with (security_invoker = true)
 as
 select
   ra.aluno_id,
+  p.nome as aluno_nome,
+  p.turma as aluno_turma,
   q.exercicio_id,
   count(*) filter (where ra.correta) as acertos,
   count(*) as total_respondidas,
   round(100.0 * count(*) filter (where ra.correta) / count(*), 1) as percentual
 from public.respostas_aluno ra
 join public.questoes q on q.id = ra.questao_id
-group by ra.aluno_id, q.exercicio_id;
+join public.profiles p on p.id = ra.aluno_id
+group by ra.aluno_id, p.nome, p.turma, q.exercicio_id;
 
 -- necessário porque "Automatically expose new tables" está desativado no projeto:
 -- sem isso, nem o service_role tem acesso à tabela (o RLS é uma camada por cima disso).
