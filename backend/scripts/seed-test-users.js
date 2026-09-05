@@ -7,6 +7,7 @@ import { supabaseAdmin } from '../src/config/supabaseAdmin.js';
 const USUARIOS = [
   { email: 'professor.teste@gmail.com', senha: 'senha123456', nome: 'Professor Teste', tipo: 'professor', usuario: null, turma: null },
   { email: 'aluno.dois@aprendemais.local', senha: 'senha123456', nome: 'Aluno Dois', tipo: 'aluno', usuario: 'aluno.dois', turma: '5A' },
+  { email: 'aluno.tres@aprendemais.local', senha: 'senha123456', nome: 'Aluno Três', tipo: 'aluno', usuario: 'aluno.tres', turma: '5A' },
 ];
 
 const { data } = await supabaseAdmin.auth.admin.listUsers();

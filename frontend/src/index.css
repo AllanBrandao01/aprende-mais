@@ -45,3 +45,14 @@ select:focus-visible,
   outline: 3px solid #7fb2e5;
   outline-offset: 2px;
 }
+
+/* inverte as cores da tela (exceto mídia) para um modo de alto contraste rápido */
+.alto-contraste {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.alto-contraste img,
+.alto-contraste video,
+.alto-contraste iframe {
+  filter: invert(1) hue-rotate(180deg);
+}

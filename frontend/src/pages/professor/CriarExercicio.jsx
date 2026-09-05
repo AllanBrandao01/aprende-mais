@@ -1,11 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import styles from './CriarExercicio.module.css';
 
 function questaoVazia() {
-  return { enunciado: '', alternativas: [{ texto: '', correta: true }, { texto: '', correta: false }] };
+  return {
+    enunciado: '',
+    midia_url: '',
+    midia_tipo: 'imagem',
+    alternativas: [{ texto: '', correta: true }, { texto: '', correta: false }],
+  };
 }
 
 export function CriarExercicio() {
@@ -15,11 +20,20 @@ export function CriarExercicio() {
   const [disciplina, setDisciplina] = useState('portugues');
   const [serie, setSerie] = useState('');
   const [questoes, setQuestoes] = useState([questaoVazia()]);
+  const [alunos, setAlunos] = useState(null);
+  const [alunoIds, setAlunoIds] = useState([]);
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-  function atualizarQuestao(i, enunciado) {
-    setQuestoes((qs) => qs.map((q, idx) => (idx === i ? { ...q, enunciado } : q)));
+  useEffect(() => {
+    api
+      .listAlunos(token)
+      .then(setAlunos)
+      .catch((err) => setErro(err.message));
+  }, [token]);
+
+  function atualizarQuestao(i, campo, valor) {
+    setQuestoes((qs) => qs.map((q, idx) => (idx === i ? { ...q, [campo]: valor } : q)));
   }
 
   function atualizarAlternativa(qi, ai, texto) {
@@ -52,12 +66,20 @@ export function CriarExercicio() {
     setQuestoes((qs) => qs.filter((_, idx) => idx !== i));
   }
 
+  function alternarAluno(id) {
+    setAlunoIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  }
+
   async function enviar(e) {
     e.preventDefault();
     setErro('');
+    if (alunoIds.length === 0) {
+      setErro('Selecione ao menos um aluno para receber o exercício.');
+      return;
+    }
     setSalvando(true);
     try {
-      const exercicio = await api.criarExercicio({ titulo, disciplina, serie, questoes }, token);
+      const exercicio = await api.criarExercicio({ titulo, disciplina, serie, questoes, aluno_ids: alunoIds }, token);
       navigate(`/professor/${exercicio.id}/resultados`);
     } catch (err) {
       setErro(err.message);
@@ -89,14 +111,57 @@ export function CriarExercicio() {
           </label>
         </div>
 
+        <fieldset className={styles.questao}>
+          <legend>Direcionar para</legend>
+          {alunos === null && <p className={styles.dica}>Carregando alunos...</p>}
+          {alunos?.length === 0 && <p className={styles.dica}>Nenhum aluno cadastrado ainda.</p>}
+          <div className={styles.listaAlunos}>
+            {alunos?.map((aluno) => (
+              <label key={aluno.id} className={styles.itemAluno}>
+                <input
+                  type="checkbox"
+                  checked={alunoIds.includes(aluno.id)}
+                  onChange={() => alternarAluno(aluno.id)}
+                />
+                {aluno.nome}
+                {aluno.turma && <span className={styles.dica}> — {aluno.turma}</span>}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
         {questoes.map((questao, qi) => (
           <fieldset className={styles.questao} key={qi}>
             <legend>Questão {qi + 1}</legend>
 
             <label>
               Enunciado
-              <input value={questao.enunciado} onChange={(e) => atualizarQuestao(qi, e.target.value)} required />
+              <input
+                value={questao.enunciado}
+                onChange={(e) => atualizarQuestao(qi, 'enunciado', e.target.value)}
+                required
+              />
             </label>
+
+            <div className={styles.linha}>
+              <label>
+                Imagem ou vídeo (link, opcional)
+                <input
+                  value={questao.midia_url}
+                  onChange={(e) => atualizarQuestao(qi, 'midia_url', e.target.value)}
+                  placeholder="https://..."
+                />
+              </label>
+              {questao.midia_url && (
+                <label>
+                  Tipo
+                  <select value={questao.midia_tipo} onChange={(e) => atualizarQuestao(qi, 'midia_tipo', e.target.value)}>
+                    <option value="imagem">Imagem</option>
+                    <option value="video">Vídeo (YouTube)</option>
+                  </select>
+                </label>
+              )}
+            </div>
 
             <p className={styles.dica}>Marque a alternativa correta:</p>
             {questao.alternativas.map((alt, ai) => (

@@ -22,18 +22,27 @@ router.get('/:id', requireAuth, async (req, res) => {
 
   const { data: questoes, error: questoesError } = await req.supabase
     .from('questoes')
-    .select('id, enunciado, tipo, ordem, alternativas (id, texto, correta)')
+    .select('id, enunciado, tipo, ordem, midia_url, midia_tipo, alternativas (id, texto, correta)')
     .eq('exercicio_id', req.params.id)
     .order('ordem', { ascending: true });
   if (questoesError) return res.status(400).json({ error: questoesError.message });
 
-  res.json({ ...exercicio, questoes });
+  const { data: alunos, error: alunosError } = await req.supabase
+    .from('exercicio_alunos')
+    .select('aluno_id, profiles (id, nome, turma)')
+    .eq('exercicio_id', req.params.id);
+  if (alunosError) return res.status(400).json({ error: alunosError.message });
+
+  res.json({ ...exercicio, questoes, alunos: alunos.map((a) => a.profiles) });
 });
 
 router.post('/', requireAuth, async (req, res) => {
-  const { titulo, disciplina, serie, questoes } = req.body;
+  const { titulo, disciplina, serie, questoes, aluno_ids } = req.body;
   if (!titulo || !disciplina || !Array.isArray(questoes) || questoes.length === 0) {
     return res.status(400).json({ error: 'Campos obrigatórios: titulo, disciplina, questoes (lista não vazia)' });
+  }
+  if (!Array.isArray(aluno_ids) || aluno_ids.length === 0) {
+    return res.status(400).json({ error: 'Selecione ao menos um aluno para receber o exercício' });
   }
 
   const { data: exercicio, error: exercicioError } = await req.supabase
@@ -43,6 +52,11 @@ router.post('/', requireAuth, async (req, res) => {
     .single();
   if (exercicioError) return res.status(400).json({ error: exercicioError.message });
 
+  const { error: vinculoError } = await req.supabase
+    .from('exercicio_alunos')
+    .insert(aluno_ids.map((aluno_id) => ({ exercicio_id: exercicio.id, aluno_id })));
+  if (vinculoError) return res.status(400).json({ error: vinculoError.message });
+
   for (const [ordem, questao] of questoes.entries()) {
     const { data: questaoCriada, error: questaoError } = await req.supabase
       .from('questoes')
@@ -51,6 +65,8 @@ router.post('/', requireAuth, async (req, res) => {
         enunciado: questao.enunciado,
         tipo: questao.tipo || 'multipla_escolha',
         ordem,
+        midia_url: questao.midia_url || null,
+        midia_tipo: questao.midia_url ? questao.midia_tipo || 'imagem' : null,
       })
       .select()
       .single();

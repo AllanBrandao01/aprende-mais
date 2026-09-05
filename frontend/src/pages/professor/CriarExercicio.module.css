@@ -61,6 +61,19 @@
   color: #475569;
 }
 
+.listaAlunos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemAluno {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  min-height: 24px;
+}
+
 .alternativa {
   display: flex;
   align-items: center;

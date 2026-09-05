@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
+import { falar, youtubeEmbedUrl } from '../../lib/midia';
 import styles from './Responder.module.css';
 
 export function Responder() {
@@ -71,7 +72,30 @@ export function Responder() {
       <p className={styles.progresso}>
         Questão {indice + 1} de {exercicio.questoes.length}
       </p>
-      <h1>{questao.enunciado}</h1>
+      <div className={styles.enunciadoLinha}>
+        <h1>{questao.enunciado}</h1>
+        <button
+          type="button"
+          className={styles.botaoOuvir}
+          onClick={() => falar(`${questao.enunciado}. ${questao.alternativas.map((a) => a.texto).join('. ')}`)}
+          aria-label="Ouvir a questão e as alternativas em voz alta"
+        >
+          🔊 Ouvir
+        </button>
+      </div>
+
+      {questao.midia_url && questao.midia_tipo === 'imagem' && (
+        <img className={styles.midiaImagem} src={questao.midia_url} alt="Imagem de apoio da questão" />
+      )}
+      {questao.midia_url && questao.midia_tipo === 'video' && youtubeEmbedUrl(questao.midia_url) && (
+        <iframe
+          className={styles.midiaVideo}
+          src={youtubeEmbedUrl(questao.midia_url)}
+          title="Vídeo de apoio da questão"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      )}
 
       <div className={styles.alternativas}>
         {questao.alternativas.map((alt) => {

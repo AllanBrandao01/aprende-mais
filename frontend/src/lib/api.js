@@ -24,4 +24,8 @@ export const api = {
   responder: (exercicioId, payload, token) =>
     request(`/exercicios/${exercicioId}/respostas`, { method: 'POST', body: payload, token }),
   resultados: (exercicioId, token) => request(`/exercicios/${exercicioId}/resultados`, { token }),
+  listAlunos: (token) => request('/alunos', { token }),
+  atualizarSituacao: (alunoId, situacao, token) =>
+    request(`/alunos/${alunoId}`, { method: 'PATCH', body: { situacao }, token }),
+  evolucaoAluno: (alunoId, token) => request(`/alunos/${alunoId}/evolucao`, { token }),
 };
