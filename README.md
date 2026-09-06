@@ -15,7 +15,6 @@ Projeto desenvolvido para a EMEF Conceição Aparecida Magalhães Silva (Jacare�
 ```
 backend/    API REST em Express, integrada ao Supabase
 frontend/   Aplicação React (Vite)
-docs/       Documentos e diagramas do projeto
 ```
 
 ## Como rodar
