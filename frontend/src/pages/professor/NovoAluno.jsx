@@ -58,6 +58,7 @@ export function NovoAluno() {
             required
           />
         </label>
+        <p className={styles.dica}>O aluno será obrigado a trocar essa senha no primeiro acesso.</p>
 
         {erro && (
           <p className={styles.erro} role="alert">

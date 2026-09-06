@@ -5,7 +5,7 @@ import { api } from '../lib/api';
 import styles from './Login.module.css';
 
 export function TrocarSenha() {
-  const { token, atualizarUsuario } = useAuth();
+  const { token, logout } = useAuth();
   const navigate = useNavigate();
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmar, setConfirmar] = useState('');
@@ -22,8 +22,15 @@ export function TrocarSenha() {
     setSalvando(true);
     try {
       await api.trocarSenha(novaSenha, token);
-      atualizarUsuario({ senha_temporaria: false });
-      navigate('/');
+      // trocar a senha invalida a sessão atual no Supabase — o token em uso
+      // deixa de funcionar, então em vez de tentar continuar com ele, manda
+      // fazer login de novo já com a senha nova. Usa sessionStorage (não o
+      // state do navigate) porque o logout() dispara o redirecionamento do
+      // ProtectedRoute para /login concorrendo com esse navigate e descartando
+      // o state.
+      sessionStorage.setItem('aprendemais.mensagemLogin', 'Senha alterada! Faça login novamente com a nova senha.');
+      logout();
+      navigate('/login');
     } catch (err) {
       setErro(err.message);
     } finally {

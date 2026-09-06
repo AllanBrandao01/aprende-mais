@@ -75,6 +75,15 @@ select {
   border-radius: 8px;
 }
 
+.mensagemSucesso {
+  margin: 0;
+  font-size: 14px;
+  color: #166534;
+  background: #dcfce7;
+  padding: 10px;
+  border-radius: 8px;
+}
+
 @media (max-width: 400px) {
   .loginCard {
     padding: 24px 20px;

@@ -49,7 +49,7 @@ router.post('/', requireAuth, async (req, res) => {
 
   const { error: profileError } = await supabaseAdmin
     .from('profiles')
-    .insert({ id: data.user.id, nome, tipo: 'aluno', turma: turma || null, usuario: usuarioFinal });
+    .insert({ id: data.user.id, nome, tipo: 'aluno', turma: turma || null, usuario: usuarioFinal, senha_temporaria: true });
   if (profileError) return res.status(400).json({ error: profileError.message });
 
   res.status(201).json({ id: data.user.id, nome, turma: turma || null, usuario: usuarioFinal, situacao: 'em_reforco' });

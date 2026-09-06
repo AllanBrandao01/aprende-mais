@@ -7,9 +7,9 @@ import { supabaseAdmin } from '../src/config/supabaseAdmin.js';
 const DIRETOR = { email: 'diretor.teste@gmail.com', senha: 'aprende123', nome: 'Diretor Teste', senhaTemporaria: true };
 const PROFESSOR = { email: 'professor.teste@gmail.com', senha: 'senha123456', nome: 'Professor Teste' };
 const ALUNOS = [
-  { email: 'ana@aprendemais.local', senha: 'senha123456', nome: 'Ana Silva', usuario: 'ana', turma: '5A' },
-  { email: 'bruno@aprendemais.local', senha: 'senha123456', nome: 'Bruno Souza', usuario: 'bruno', turma: '5A' },
-  { email: 'carla@aprendemais.local', senha: 'senha123456', nome: 'Carla Lima', usuario: 'carla', turma: '5B' },
+  { email: 'ana@aprendemais.local', senha: 'senha123456', nome: 'Ana Silva', usuario: 'ana', turma: '5A', senhaTemporaria: true },
+  { email: 'bruno@aprendemais.local', senha: 'senha123456', nome: 'Bruno Souza', usuario: 'bruno', turma: '5A', senhaTemporaria: true },
+  { email: 'carla@aprendemais.local', senha: 'senha123456', nome: 'Carla Lima', usuario: 'carla', turma: '5B', senhaTemporaria: true },
 ];
 const EMAILS_DESCARTAR = ['aluno.dois@aprendemais.local', 'aluno.tres@aprendemais.local'];
 

@@ -12,6 +12,11 @@ export function Login() {
   const [carregando, setCarregando] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [mensagem] = useState(() => {
+    const guardada = sessionStorage.getItem('aprendemais.mensagemLogin');
+    if (guardada) sessionStorage.removeItem('aprendemais.mensagemLogin');
+    return guardada;
+  });
 
   async function enviar(e) {
     e.preventDefault();
@@ -36,6 +41,12 @@ export function Login() {
       <form className={styles.loginCard} onSubmit={enviar}>
         <h1>Aprende+</h1>
         <p className={styles.subtitulo}>Reforço escolar de Português e Matemática</p>
+
+        {mensagem && (
+          <p className={styles.mensagemSucesso} role="status">
+            {mensagem}
+          </p>
+        )}
 
         <label>
           Sou
