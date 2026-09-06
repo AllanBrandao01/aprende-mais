@@ -66,6 +66,24 @@
   margin: 20px 0;
 }
 
+.textoResposta {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 16px;
+  resize: vertical;
+  margin: 16px 0;
+}
+
+.textoResposta:disabled {
+  background: #f8fafc;
+  color: #334155;
+}
+
 .alternativa {
   text-align: left;
   padding: 14px 16px;
@@ -102,6 +120,11 @@
   font-size: 16px;
   cursor: pointer;
   text-decoration: none;
+}
+
+.botaoPrincipal:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .resumo {

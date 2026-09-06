@@ -25,12 +25,14 @@ export const api = {
   excluirExercicio: (id, token) => request(`/exercicios/${id}`, { method: 'DELETE', token }),
   responder: (exercicioId, payload, token) =>
     request(`/exercicios/${exercicioId}/respostas`, { method: 'POST', body: payload, token }),
+  respostasExercicio: (exercicioId, alunoId, token) =>
+    request(`/exercicios/${exercicioId}/respostas${alunoId ? `?aluno_id=${alunoId}` : ''}`, { token }),
   resultados: (exercicioId, token) => request(`/exercicios/${exercicioId}/resultados`, { token }),
   listAlunos: (token) => request('/alunos', { token }),
   criarAluno: (payload, token) => request('/alunos', { method: 'POST', body: payload, token }),
   atualizarSituacao: (alunoId, situacao, token) =>
     request(`/alunos/${alunoId}`, { method: 'PATCH', body: { situacao }, token }),
-  evolucaoAluno: (alunoId, token) => request(`/alunos/${alunoId}/evolucao`, { token }),
+  exerciciosDoAluno: (alunoId, token) => request(`/alunos/${alunoId}/exercicios`, { token }),
   listProfessores: (token) => request('/professores', { token }),
   criarProfessor: (payload, token) => request('/professores', { method: 'POST', body: payload, token }),
 };

@@ -28,13 +28,19 @@
   white-space: nowrap;
 }
 
+.filtros {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
 .filtro {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
   color: #334155;
-  margin-bottom: 16px;
 }
 
 .filtro select {

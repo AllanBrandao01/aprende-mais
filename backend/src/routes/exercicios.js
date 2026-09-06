@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { calcularProgresso } from '../lib/progresso.js';
 
 const router = Router();
 
@@ -23,11 +24,14 @@ async function inserirQuestoes(supabase, exercicioId, questoes) {
       .single();
     if (questaoError) return { error: questaoError };
 
-    const alternativas = (questao.alternativas || []).map((a) => ({
-      questao_id: questaoCriada.id,
-      texto: a.texto,
-      correta: !!a.correta,
-    }));
+    const alternativas =
+      questao.tipo === 'dissertativa'
+        ? []
+        : (questao.alternativas || []).map((a) => ({
+            questao_id: questaoCriada.id,
+            texto: a.texto,
+            correta: !!a.correta,
+          }));
     if (alternativas.length > 0) {
       const { error: alternativasError } = await supabase.from('alternativas').insert(alternativas);
       if (alternativasError) return { error: alternativasError };
@@ -43,6 +47,15 @@ function validarPayload(body) {
   }
   if (!Array.isArray(aluno_ids) || aluno_ids.length === 0) {
     return 'Selecione ao menos um aluno para receber o exercício';
+  }
+  for (const [i, q] of questoes.entries()) {
+    if (q.tipo === 'dissertativa') continue;
+    if (!Array.isArray(q.alternativas) || q.alternativas.length < 2) {
+      return `Questão ${i + 1}: informe ao menos 2 alternativas`;
+    }
+    if (!q.alternativas.some((a) => a.correta)) {
+      return `Questão ${i + 1}: marque uma alternativa correta`;
+    }
   }
   return null;
 }
@@ -68,35 +81,7 @@ router.get('/', requireAuth, async (req, res) => {
     .eq('aluno_id', req.user.id);
   if (respostasError) return res.status(400).json({ error: respostasError.message });
 
-  const exercicioDaQuestao = {};
-  const totalPorExercicio = {};
-  questoes.forEach((q) => {
-    exercicioDaQuestao[q.id] = q.exercicio_id;
-    totalPorExercicio[q.exercicio_id] = (totalPorExercicio[q.exercicio_id] || 0) + 1;
-  });
-
-  const respondidasPorExercicio = {};
-  const acertosPorExercicio = {};
-  minhasRespostas.forEach((r) => {
-    const exId = exercicioDaQuestao[r.questao_id];
-    if (!exId) return;
-    respondidasPorExercicio[exId] = (respondidasPorExercicio[exId] || 0) + 1;
-    if (r.correta) acertosPorExercicio[exId] = (acertosPorExercicio[exId] || 0) + 1;
-  });
-
-  res.json(
-    exercicios.map((e) => {
-      const total = totalPorExercicio[e.id] || 0;
-      const respondidas = respondidasPorExercicio[e.id] || 0;
-      return {
-        ...e,
-        total_questoes: total,
-        respondidas,
-        concluido: total > 0 && respondidas >= total,
-        percentual: respondidas > 0 ? Math.round((100 * (acertosPorExercicio[e.id] || 0)) / respondidas) : null,
-      };
-    })
-  );
+  res.json(calcularProgresso(exercicios, questoes, minhasRespostas));
 });
 
 router.get('/:id', requireAuth, async (req, res) => {
@@ -196,32 +181,77 @@ router.delete('/:id', requireAuth, async (req, res) => {
 });
 
 router.post('/:id/respostas', requireAuth, async (req, res) => {
-  const { questao_id, alternativa_id } = req.body;
-  if (!questao_id || !alternativa_id) {
-    return res.status(400).json({ error: 'Campos obrigatórios: questao_id, alternativa_id' });
+  const { questao_id, alternativa_id, resposta_texto } = req.body;
+  if (!questao_id || (!alternativa_id && !resposta_texto)) {
+    return res.status(400).json({ error: 'Informe alternativa_id (objetiva) ou resposta_texto (dissertativa)' });
   }
 
-  const { data: alternativa, error: alternativaError } = await req.supabase
-    .from('alternativas')
-    .select('correta')
-    .eq('id', alternativa_id)
-    .single();
-  if (alternativaError) return res.status(400).json({ error: alternativaError.message });
+  let correta = null;
+  if (alternativa_id) {
+    const { data: alternativa, error: alternativaError } = await req.supabase
+      .from('alternativas')
+      .select('correta')
+      .eq('id', alternativa_id)
+      .single();
+    if (alternativaError) return res.status(400).json({ error: alternativaError.message });
+    correta = alternativa.correta;
+  }
 
+  // insert (não upsert): a unique constraint em (aluno_id, questao_id) rejeita
+  // uma segunda tentativa — o aluno não pode refazer uma questão já respondida.
   const { data, error } = await req.supabase
     .from('respostas_aluno')
-    .upsert(
-      { aluno_id: req.user.id, questao_id, alternativa_id, correta: alternativa.correta },
-      { onConflict: 'aluno_id,questao_id' }
-    )
+    .insert({
+      aluno_id: req.user.id,
+      questao_id,
+      alternativa_id: alternativa_id || null,
+      resposta_texto: resposta_texto || null,
+      correta,
+    })
     .select()
     .single();
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) {
+    if (error.code === '23505') return res.status(409).json({ error: 'Você já respondeu essa questão.' });
+    return res.status(400).json({ error: error.message });
+  }
   res.status(201).json(data);
 });
 
 router.get('/:id/resultados', requireAuth, async (req, res) => {
   const { data, error } = await req.supabase.from('resultados').select('*').eq('exercicio_id', req.params.id);
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+// respostas de um aluno específico para um exercício — usado tanto pelo próprio
+// aluno (retomar após recarregar a página) quanto pelo professor (tela de revisão)
+router.get('/:id/respostas', requireAuth, async (req, res) => {
+  const alunoId = req.query.aluno_id || req.user.id;
+  if (alunoId !== req.user.id) {
+    const { data: chamador, error: chamadorError } = await req.supabase
+      .from('profiles')
+      .select('tipo')
+      .eq('id', req.user.id)
+      .single();
+    if (chamadorError || chamador.tipo !== 'professor') {
+      return res.status(403).json({ error: 'Sem permissão para ver respostas de outro aluno' });
+    }
+  }
+
+  const { data: questoes, error: questoesError } = await req.supabase
+    .from('questoes')
+    .select('id')
+    .eq('exercicio_id', req.params.id);
+  if (questoesError) return res.status(400).json({ error: questoesError.message });
+
+  const { data, error } = await req.supabase
+    .from('respostas_aluno')
+    .select('questao_id, alternativa_id, resposta_texto, correta')
+    .eq('aluno_id', alunoId)
+    .in(
+      'questao_id',
+      questoes.map((q) => q.id)
+    );
   if (error) return res.status(400).json({ error: error.message });
   res.json(data);
 });

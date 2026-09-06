@@ -19,7 +19,7 @@ drop type if exists public.situacao_aluno;
 
 create type public.tipo_usuario as enum ('aluno', 'professor', 'diretor');
 create type public.disciplina as enum ('portugues', 'matematica');
-create type public.tipo_questao as enum ('multipla_escolha', 'verdadeiro_falso');
+create type public.tipo_questao as enum ('multipla_escolha', 'verdadeiro_falso', 'dissertativa');
 create type public.tipo_midia as enum ('imagem', 'video');
 create type public.situacao_aluno as enum ('em_reforco', 'apto_saida');
 
@@ -74,17 +74,23 @@ create table public.alternativas (
   correta boolean not null default false
 );
 
+-- alternativa_id/correta ficam nulos para questões dissertativas (sem gabarito
+-- automático); resposta_texto é usado só nesse caso. Sem upsert no backend:
+-- a unique constraint abaixo é o que impede o aluno de refazer uma questão.
 create table public.respostas_aluno (
   id uuid primary key default gen_random_uuid(),
   aluno_id uuid not null references public.profiles (id) on delete cascade,
   questao_id uuid not null references public.questoes (id) on delete cascade,
-  alternativa_id uuid not null references public.alternativas (id),
-  correta boolean not null,
+  alternativa_id uuid references public.alternativas (id),
+  resposta_texto text,
+  correta boolean,
   respondido_em timestamptz not null default now(),
   unique (aluno_id, questao_id)
 );
 
 -- desempenho agregado por aluno/exercício, usado no dashboard do professor
+-- só questões objetivas (correta not null) entram no percentual — dissertativas
+-- não têm gabarito automático e não contam na nota
 -- security_invoker: a view roda com o privilégio de quem consulta, então o RLS
 -- de respostas_aluno se aplica normalmente (aluno só vê o próprio resultado)
 create view public.resultados
@@ -98,8 +104,11 @@ select
   e.titulo as exercicio_titulo,
   e.created_at as exercicio_criado_em,
   count(*) filter (where ra.correta) as acertos,
-  count(*) as total_respondidas,
-  round(100.0 * count(*) filter (where ra.correta) / count(*), 1) as percentual
+  count(*) filter (where ra.correta is not null) as total_respondidas,
+  case when count(*) filter (where ra.correta is not null) > 0
+    then round(100.0 * count(*) filter (where ra.correta) / count(*) filter (where ra.correta is not null), 1)
+    else null
+  end as percentual
 from public.respostas_aluno ra
 join public.questoes q on q.id = ra.questao_id
 join public.exercicios e on e.id = q.exercicio_id
@@ -208,5 +217,3 @@ create policy "respostas_select_own_or_professor" on public.respostas_aluno
   for select using (aluno_id = auth.uid() or public.is_professor());
 create policy "respostas_insert_own" on public.respostas_aluno
   for insert with check (aluno_id = auth.uid());
-create policy "respostas_update_own" on public.respostas_aluno
-  for update using (aluno_id = auth.uid());

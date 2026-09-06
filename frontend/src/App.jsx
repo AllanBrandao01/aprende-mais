@@ -13,6 +13,7 @@ import { Resultados } from './pages/professor/Resultados';
 import { Alunos } from './pages/professor/Alunos';
 import { NovoAluno } from './pages/professor/NovoAluno';
 import { EvolucaoAluno } from './pages/professor/EvolucaoAluno';
+import { RevisaoExercicio } from './pages/professor/RevisaoExercicio';
 import { ExerciciosListAluno } from './pages/aluno/ExerciciosList';
 import { Responder } from './pages/aluno/Responder';
 import { Professores } from './pages/diretor/Professores';
@@ -49,6 +50,7 @@ function App() {
               <Route path="/professor/alunos" element={<Alunos />} />
               <Route path="/professor/alunos/novo" element={<NovoAluno />} />
               <Route path="/professor/alunos/:id" element={<EvolucaoAluno />} />
+              <Route path="/professor/alunos/:alunoId/exercicios/:exercicioId" element={<RevisaoExercicio />} />
               <Route path="/aluno" element={<ExerciciosListAluno />} />
               <Route path="/aluno/:id" element={<Responder />} />
               <Route path="/diretor" element={<Professores />} />

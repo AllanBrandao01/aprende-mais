@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { supabaseAdmin } from '../config/supabaseAdmin.js';
 import { emailDoUsuario } from '../lib/usuario.js';
+import { calcularProgresso } from '../lib/progresso.js';
 
 const router = Router();
 
@@ -69,14 +70,44 @@ router.patch('/:id', requireAuth, async (req, res) => {
   res.json(data);
 });
 
-router.get('/:id/evolucao', requireAuth, async (req, res) => {
-  const { data, error } = await req.supabase
-    .from('resultados')
-    .select('exercicio_id, exercicio_titulo, exercicio_criado_em, acertos, total_respondidas, percentual')
-    .eq('aluno_id', req.params.id)
-    .order('exercicio_criado_em', { ascending: true });
-  if (error) return res.status(400).json({ error: error.message });
-  res.json(data);
+// exercícios atribuídos a um aluno com o progresso dele em cada um (pendente ou
+// concluído) — usado na tela de evolução do professor, que antes só mostrava
+// os já respondidos
+router.get('/:id/exercicios', requireAuth, async (req, res) => {
+  if (req.params.id !== req.user.id) {
+    const { data: chamador, error: chamadorError } = await req.supabase
+      .from('profiles')
+      .select('tipo')
+      .eq('id', req.user.id)
+      .single();
+    if (chamadorError || chamador.tipo !== 'professor') {
+      return res.status(403).json({ error: 'Sem permissão para ver exercícios de outro aluno' });
+    }
+  }
+
+  const { data: vinculos, error: vinculosError } = await req.supabase
+    .from('exercicio_alunos')
+    .select('exercicio_id, exercicios (id, titulo, disciplina, serie, created_at)')
+    .eq('aluno_id', req.params.id);
+  if (vinculosError) return res.status(400).json({ error: vinculosError.message });
+  if (vinculos.length === 0) return res.json([]);
+
+  const exerciciosBase = vinculos.map((v) => v.exercicios).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  const ids = exerciciosBase.map((e) => e.id);
+
+  const { data: questoes, error: questoesError } = await req.supabase
+    .from('questoes')
+    .select('id, exercicio_id')
+    .in('exercicio_id', ids);
+  if (questoesError) return res.status(400).json({ error: questoesError.message });
+
+  const { data: respostas, error: respostasError } = await req.supabase
+    .from('respostas_aluno')
+    .select('questao_id, correta')
+    .eq('aluno_id', req.params.id);
+  if (respostasError) return res.status(400).json({ error: respostasError.message });
+
+  res.json(calcularProgresso(exerciciosBase, questoes, respostas));
 });
 
 export default router;

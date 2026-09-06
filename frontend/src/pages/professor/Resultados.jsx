@@ -71,7 +71,7 @@ export function Resultados() {
       {resultados?.length === 0 && <p>Nenhum aluno respondeu ainda.</p>}
       <div className={styles.lista}>
         {resultados?.map((r) => (
-          <div className={styles.linha} key={r.aluno_id}>
+          <Link to={`/professor/alunos/${r.aluno_id}/exercicios/${id}`} className={styles.linha} key={r.aluno_id}>
             <div>
               <strong>{r.aluno_nome}</strong>
               {r.aluno_turma && <span className={styles.turma}> — {r.aluno_turma}</span>}
@@ -79,7 +79,7 @@ export function Resultados() {
             <span className={styles.percentual}>
               {r.acertos}/{r.total_respondidas} ({r.percentual}%)
             </span>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

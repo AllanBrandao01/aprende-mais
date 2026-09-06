@@ -107,12 +107,24 @@
   border-radius: 999px;
 }
 
+.statusLinha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .badgePendente,
 .badgeConcluido {
   align-self: flex-start;
   font-size: 12px;
   padding: 3px 10px;
   border-radius: 999px;
+}
+
+.desempenho {
+  font-size: 13px;
+  color: #475569;
 }
 
 .badgePendente {

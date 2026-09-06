@@ -1,0 +1,136 @@
+.pagina {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.voltar {
+  display: inline-block;
+  color: #1e3a5f;
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.pagina h1 {
+  color: #1e3a5f;
+  margin-bottom: 4px;
+}
+
+.subtitulo {
+  color: #475569;
+  margin-top: 0;
+}
+
+.midiaImagem {
+  display: block;
+  max-width: 100%;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+.midiaVideo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.questao {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.enunciado {
+  font-weight: 500;
+  color: #1e293b;
+  margin-top: 0;
+}
+
+.alternativas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alternativa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.correta {
+  border-color: #16a34a;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.escolhidaErrada {
+  border-color: #dc2626;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.tags {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tagCorreta,
+.tagEscolhida {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.tagCorreta {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.tagEscolhida {
+  background: #1e3a5f;
+  color: #ffffff;
+}
+
+.respostaTexto {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #1e293b;
+  white-space: pre-wrap;
+}
+
+.dica {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #475569;
+}
+
+.erro {
+  color: #b45309;
+  background: #fef3c7;
+  padding: 10px;
+  border-radius: 8px;
+  max-width: 640px;
+  margin: 24px auto;
+}

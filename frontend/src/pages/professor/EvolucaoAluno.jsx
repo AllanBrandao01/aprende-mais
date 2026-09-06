@@ -4,19 +4,21 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import styles from './EvolucaoAluno.module.css';
 
+const NOME_DISCIPLINA = { portugues: 'Português', matematica: 'Matemática' };
+
 export function EvolucaoAluno() {
   const { id } = useParams();
   const { token } = useAuth();
   const [alunos, setAlunos] = useState(null);
-  const [evolucao, setEvolucao] = useState(null);
+  const [exercicios, setExercicios] = useState(null);
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
 
   function carregar() {
-    Promise.all([api.listAlunos(token), api.evolucaoAluno(id, token)])
-      .then(([lista, ev]) => {
+    Promise.all([api.listAlunos(token), api.exerciciosDoAluno(id, token)])
+      .then(([lista, ex]) => {
         setAlunos(lista);
-        setEvolucao(ev);
+        setExercicios(ex);
       })
       .catch((err) => setErro(err.message));
   }
@@ -57,31 +59,48 @@ export function EvolucaoAluno() {
 
           <div className={styles.situacaoBox}>
             <span className={aluno.situacao === 'apto_saida' ? styles.badgeApto : styles.badgeReforco}>
-              {aluno.situacao === 'apto_saida' ? 'Apto a sair do reforço' : 'Em reforço'}
+              {aluno.situacao === 'apto_saida' ? 'Reforço concluído' : 'Em reforço'}
             </span>
             <button className={styles.botaoSecundario} onClick={alternarSituacao} disabled={salvando}>
-              {aluno.situacao === 'apto_saida' ? 'Voltar para reforço' : 'Marcar como apto a sair'}
+              {aluno.situacao === 'apto_saida' ? 'Voltar para reforço' : 'Marcar reforço como concluído'}
             </button>
           </div>
         </>
       )}
 
-      <h2>Evolução</h2>
-      {evolucao?.length === 0 && <p>Esse aluno ainda não respondeu nenhum exercício.</p>}
+      <h2>Exercícios</h2>
+      {exercicios?.length === 0 && <p>Nenhum exercício atribuído a esse aluno ainda.</p>}
       <div className={styles.lista}>
-        {evolucao?.map((r) => (
-          <div className={styles.linha} key={r.exercicio_id}>
+        {exercicios?.map((ex) => (
+          <Link to={`/professor/alunos/${id}/exercicios/${ex.id}`} className={styles.linha} key={ex.id}>
             <div className={styles.linhaTopo}>
-              <strong>{r.exercicio_titulo}</strong>
-              <span>{r.percentual}%</span>
+              <strong>{ex.titulo}</strong>
+              <span className={ex.concluido ? styles.badgeApto : styles.badgeReforco}>
+                {ex.concluido ? 'Concluído' : 'Pendente'}
+              </span>
             </div>
-            <div className={styles.barraFundo}>
-              <div className={styles.barraPreenchida} style={{ width: `${r.percentual}%` }} />
-            </div>
-            <span className={styles.detalhe}>
-              {r.acertos}/{r.total_respondidas} acertos — {new Date(r.exercicio_criado_em).toLocaleDateString('pt-BR')}
-            </span>
-          </div>
+            {ex.concluido && ex.percentual !== null && (
+              <>
+                <div className={styles.barraFundo}>
+                  <div className={styles.barraPreenchida} style={{ width: `${ex.percentual}%` }} />
+                </div>
+                <span className={styles.detalhe}>
+                  {ex.acertos}/{ex.total_objetivas} acertos — {new Date(ex.created_at).toLocaleDateString('pt-BR')}
+                </span>
+              </>
+            )}
+            {ex.concluido && ex.percentual === null && (
+              <span className={styles.detalhe}>
+                Sem questões objetivas — {new Date(ex.created_at).toLocaleDateString('pt-BR')}
+              </span>
+            )}
+            {!ex.concluido && (
+              <span className={styles.detalhe}>
+                {NOME_DISCIPLINA[ex.disciplina] || ex.disciplina}
+                {ex.serie ? ` — ${ex.serie}` : ''}
+              </span>
+            )}
+          </Link>
         ))}
       </div>
     </div>

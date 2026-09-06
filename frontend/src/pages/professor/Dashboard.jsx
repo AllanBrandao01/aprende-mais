@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
@@ -9,7 +9,6 @@ export function Dashboard() {
   const [alunos, setAlunos] = useState(null);
   const [exercicios, setExercicios] = useState(null);
   const [erro, setErro] = useState('');
-  const [filtroTurma, setFiltroTurma] = useState('todas');
 
   useEffect(() => {
     Promise.all([api.listAlunos(token), api.listExercicios(token)])
@@ -20,13 +19,8 @@ export function Dashboard() {
       .catch((err) => setErro(err.message));
   }, [token]);
 
-  const turmas = useMemo(() => {
-    if (!alunos) return [];
-    return [...new Set(alunos.map((a) => a.turma).filter(Boolean))].sort();
-  }, [alunos]);
-
-  const alunosFiltrados = alunos?.filter((a) => filtroTurma === 'todas' || a.turma === filtroTurma);
-  const emReforco = alunos?.filter((a) => a.situacao === 'em_reforco').length ?? 0;
+  const emReforcoLista = alunos?.filter((a) => a.situacao === 'em_reforco') ?? [];
+  const emReforco = emReforcoLista.length;
   const aptoSaida = alunos?.filter((a) => a.situacao === 'apto_saida').length ?? 0;
 
   return (
@@ -50,7 +44,7 @@ export function Dashboard() {
         </div>
         <div className={styles.card}>
           <span className={styles.numero}>{aptoSaida}</span>
-          <span>Aptos a sair</span>
+          <span>Reforço concluído</span>
         </div>
         <div className={styles.card}>
           <span className={styles.numero}>{exercicios?.length ?? '—'}</span>
@@ -69,31 +63,23 @@ export function Dashboard() {
 
       <div className={styles.blocoLista}>
         <div className={styles.blocoTopo}>
-          <h2>Alunos</h2>
-          {turmas.length > 1 && (
-            <select value={filtroTurma} onChange={(e) => setFiltroTurma(e.target.value)}>
-              <option value="todas">Todas as turmas</option>
-              {turmas.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          )}
+          <h2>Precisam de atenção</h2>
+          <Link to="/professor/alunos" className={styles.verTodos}>
+            Ver todos os alunos →
+          </Link>
         </div>
 
-        {alunosFiltrados?.length === 0 && <p>Nenhum aluno nessa turma.</p>}
+        {alunos?.length > 0 && emReforcoLista.length === 0 && <p>Nenhum aluno em reforço no momento.</p>}
+        {alunos?.length === 0 && <p>Nenhum aluno cadastrado ainda.</p>}
 
         <div className={styles.lista}>
-          {alunosFiltrados?.map((aluno) => (
+          {emReforcoLista.map((aluno) => (
             <Link to={`/professor/alunos/${aluno.id}`} key={aluno.id} className={styles.linha}>
               <span>
                 <strong>{aluno.nome}</strong>
                 {aluno.turma && <span className={styles.turma}> — {aluno.turma}</span>}
               </span>
-              <span className={aluno.situacao === 'apto_saida' ? styles.badgeApto : styles.badgeReforco}>
-                {aluno.situacao === 'apto_saida' ? 'Apto a sair' : 'Em reforço'}
-              </span>
+              <span className={styles.badgeReforco}>Em reforço</span>
             </Link>
           ))}
         </div>

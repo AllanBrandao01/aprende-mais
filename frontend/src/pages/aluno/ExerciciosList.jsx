@@ -104,9 +104,14 @@ export function ExerciciosListAluno() {
               <span className={styles.tag}>{NOME_DISCIPLINA[ex.disciplina]}</span>
             </div>
             {ex.serie && <p>Série: {ex.serie}</p>}
-            <span className={ex.concluido ? styles.badgeConcluido : styles.badgePendente}>
-              {ex.concluido ? `Concluído — ${ex.percentual}%` : 'Pendente'}
-            </span>
+            <div className={styles.statusLinha}>
+              <span className={ex.concluido ? styles.badgeConcluido : styles.badgePendente}>
+                {ex.concluido ? 'Concluído' : 'Pendente'}
+              </span>
+              {ex.concluido && ex.percentual !== null && (
+                <span className={styles.desempenho}>{ex.percentual}% de acerto</span>
+              )}
+            </div>
           </Link>
         ))}
       </div>

@@ -7,6 +7,7 @@ import styles from './CriarExercicio.module.css';
 
 function questaoVazia() {
   return {
+    tipo: 'multipla_escolha',
     enunciado: '',
     midia_url: '',
     midia_tipo: 'imagem',
@@ -84,6 +85,7 @@ export function CriarExercicio() {
         setMidiaTipo(ex.midia_tipo || 'imagem');
         setQuestoes(
           ex.questoes.map((q) => ({
+            tipo: q.tipo || 'multipla_escolha',
             enunciado: q.enunciado,
             midia_url: q.midia_url || '',
             midia_tipo: q.midia_tipo || 'imagem',
@@ -219,6 +221,14 @@ export function CriarExercicio() {
             <legend>Questão {qi + 1}</legend>
 
             <label>
+              Tipo de questão
+              <select value={questao.tipo} onChange={(e) => atualizarQuestao(qi, 'tipo', e.target.value)}>
+                <option value="multipla_escolha">Múltipla escolha</option>
+                <option value="dissertativa">Dissertativa (resposta livre)</option>
+              </select>
+            </label>
+
+            <label>
               Enunciado
               <input
                 value={questao.enunciado}
@@ -236,35 +246,44 @@ export function CriarExercicio() {
               onTipoChange={(v) => atualizarQuestao(qi, 'midia_tipo', v)}
             />
 
-            <p className={styles.dica}>Marque a alternativa correta:</p>
-            {questao.alternativas.map((alt, ai) => (
-              <div className={styles.alternativa} key={ai}>
-                <label className={styles.radioAlvo}>
-                  <input
-                    type="radio"
-                    name={`correta-${qi}`}
-                    checked={alt.correta}
-                    onChange={() => marcarCorreta(qi, ai)}
-                    aria-label={`Marcar alternativa ${ai + 1} da questão ${qi + 1} como correta`}
-                  />
-                </label>
-                <input
-                  value={alt.texto}
-                  onChange={(e) => atualizarAlternativa(qi, ai, e.target.value)}
-                  placeholder={`Alternativa ${ai + 1}`}
-                  aria-label={`Texto da alternativa ${ai + 1} da questão ${qi + 1}`}
-                  required
-                />
-              </div>
-            ))}
-            <button
-              type="button"
-              className={styles.linkBotao}
-              onClick={() => adicionarAlternativa(qi)}
-              aria-label={`Adicionar alternativa à questão ${qi + 1}`}
-            >
-              + alternativa
-            </button>
+            {questao.tipo === 'dissertativa' ? (
+              <p className={styles.dica}>
+                O aluno vai responder com um texto livre. Essa resposta não entra no cálculo de % de acerto — ela
+                fica disponível para você ler na tela de revisão do aluno.
+              </p>
+            ) : (
+              <>
+                <p className={styles.dica}>Marque a alternativa correta:</p>
+                {questao.alternativas.map((alt, ai) => (
+                  <div className={styles.alternativa} key={ai}>
+                    <label className={styles.radioAlvo}>
+                      <input
+                        type="radio"
+                        name={`correta-${qi}`}
+                        checked={alt.correta}
+                        onChange={() => marcarCorreta(qi, ai)}
+                        aria-label={`Marcar alternativa ${ai + 1} da questão ${qi + 1} como correta`}
+                      />
+                    </label>
+                    <input
+                      value={alt.texto}
+                      onChange={(e) => atualizarAlternativa(qi, ai, e.target.value)}
+                      placeholder={`Alternativa ${ai + 1}`}
+                      aria-label={`Texto da alternativa ${ai + 1} da questão ${qi + 1}`}
+                      required
+                    />
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className={styles.linkBotao}
+                  onClick={() => adicionarAlternativa(qi)}
+                  aria-label={`Adicionar alternativa à questão ${qi + 1}`}
+                >
+                  + alternativa
+                </button>
+              </>
+            )}
 
             {questoes.length > 1 && (
               <button
