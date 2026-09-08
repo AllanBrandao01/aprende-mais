@@ -35,6 +35,7 @@ export function Layout() {
                 <path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" />
               </svg>
             </button>
+            <span className={styles.divisor} aria-hidden="true" />
             <button onClick={logout}>Sair</button>
           </div>
         </div>
