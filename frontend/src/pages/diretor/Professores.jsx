@@ -8,6 +8,8 @@ export function Professores() {
   const { token } = useAuth();
   const [professores, setProfessores] = useState(null);
   const [erro, setErro] = useState('');
+  const [resetado, setResetado] = useState(null);
+  const [resetandoId, setResetandoId] = useState(null);
 
   useEffect(() => {
     api
@@ -15,6 +17,23 @@ export function Professores() {
       .then(setProfessores)
       .catch((err) => setErro(err.message));
   }, [token]);
+
+  async function resetarSenha(prof) {
+    const confirmado = window.confirm(
+      `Resetar a senha de ${prof.nome}? Ele(a) vai precisar trocar por uma nova no próximo login.`
+    );
+    if (!confirmado) return;
+    setResetandoId(prof.id);
+    setErro('');
+    try {
+      const { senhaPadrao } = await api.resetarSenhaProfessor(prof.id, token);
+      setResetado({ nome: prof.nome, senhaPadrao });
+    } catch (err) {
+      setErro(err.message);
+    } finally {
+      setResetandoId(null);
+    }
+  }
 
   return (
     <div className={styles.pagina}>
@@ -30,12 +49,29 @@ export function Professores() {
           {erro}
         </p>
       )}
+      {resetado && (
+        <p className={styles.sucesso} role="status">
+          Senha de <strong>{resetado.nome}</strong> resetada para <strong>{resetado.senhaPadrao}</strong>. Informe a
+          ele(a) — vai precisar trocar no próximo login.
+        </p>
+      )}
       {professores?.length === 0 && <p>Nenhum professor cadastrado ainda.</p>}
 
       <div className={styles.lista}>
         {professores?.map((prof) => (
           <div className={styles.cartao} key={prof.id}>
-            <strong>{prof.nome}</strong>
+            <div>
+              <strong>{prof.nome}</strong>
+              {prof.email && <span className={styles.turma}> — {prof.email}</span>}
+            </div>
+            <button
+              type="button"
+              className={styles.botaoResetar}
+              onClick={() => resetarSenha(prof)}
+              disabled={resetandoId === prof.id}
+            >
+              {resetandoId === prof.id ? 'Resetando...' : 'Resetar senha'}
+            </button>
           </div>
         ))}
       </div>

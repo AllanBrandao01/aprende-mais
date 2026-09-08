@@ -4,3 +4,7 @@
 export function emailDoUsuario(usuario) {
   return `${usuario.toLowerCase()}@aprendemais.local`;
 }
+
+// senha usada tanto na criação de contas quanto no reset "acesso mestre" —
+// quem reseta não precisa saber a senha antiga, e a pessoa troca no próximo login
+export const SENHA_PADRAO = 'aprende123';

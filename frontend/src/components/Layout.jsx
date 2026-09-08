@@ -60,6 +60,9 @@ export function Layout() {
             <NavLink to="/diretor" end className={({ isActive }) => (isActive ? styles.navAtivo : styles.navLink)}>
               Professores
             </NavLink>
+            <NavLink to="/diretor/alunos" className={({ isActive }) => (isActive ? styles.navAtivo : styles.navLink)}>
+              Resetar senha de aluno
+            </NavLink>
           </nav>
         )}
       </header>

@@ -50,6 +50,22 @@
   font-size: 14px;
 }
 
+.buscaForm {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.buscaForm input {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+}
+
 .lista {
   display: flex;
   flex-direction: column;
@@ -92,9 +108,32 @@
   color: #166534;
 }
 
+.botaoResetar {
+  padding: 8px 14px;
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  background: none;
+  color: #1e3a5f;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 24px;
+}
+
+.botaoResetar:disabled {
+  opacity: 0.6;
+}
+
 .erro {
   color: #b45309;
   background: #fef3c7;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.sucesso {
+  color: #166534;
+  background: #dcfce7;
   padding: 10px;
   border-radius: 8px;
 }

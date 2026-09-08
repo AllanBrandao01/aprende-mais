@@ -18,6 +18,7 @@ import { ExerciciosListAluno } from './pages/aluno/ExerciciosList';
 import { Responder } from './pages/aluno/Responder';
 import { Professores } from './pages/diretor/Professores';
 import { NovoProfessor } from './pages/diretor/NovoProfessor';
+import { BuscarAluno } from './pages/diretor/BuscarAluno';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
               <Route path="/aluno/:id" element={<Responder />} />
               <Route path="/diretor" element={<Professores />} />
               <Route path="/diretor/novo" element={<NovoProfessor />} />
+              <Route path="/diretor/alunos" element={<BuscarAluno />} />
             </Route>
           </Routes>
         </PreferenciasProvider>

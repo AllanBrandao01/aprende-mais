@@ -1,10 +1,19 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { supabaseAdmin } from '../config/supabaseAdmin.js';
-import { emailDoUsuario } from '../lib/usuario.js';
+import { emailDoUsuario, SENHA_PADRAO } from '../lib/usuario.js';
 import { calcularProgresso } from '../lib/progresso.js';
 
 const router = Router();
+
+async function exigirProfessorOuDiretor(req, res) {
+  const { data, error } = await req.supabase.from('profiles').select('tipo').eq('id', req.user.id).single();
+  if (error || !['professor', 'diretor'].includes(data.tipo)) {
+    res.status(403).json({ error: 'Apenas professor ou diretoria podem fazer isso' });
+    return false;
+  }
+  return true;
+}
 
 router.get('/', requireAuth, async (req, res) => {
   const { data, error } = await req.supabase
@@ -53,6 +62,45 @@ router.post('/', requireAuth, async (req, res) => {
   if (profileError) return res.status(400).json({ error: profileError.message });
 
   res.status(201).json({ id: data.user.id, nome, turma: turma || null, usuario: usuarioFinal, situacao: 'em_reforco' });
+});
+
+// busca mínima usada pela diretoria para localizar um aluno e resetar a senha
+// dele em caso de esquecimento — não expõe situação de reforço nem exercícios,
+// só o necessário pra confirmar que é a pessoa certa
+router.get('/buscar', requireAuth, async (req, res) => {
+  if (!(await exigirProfessorOuDiretor(req, res))) return;
+
+  const termo = (req.query.q || '').trim();
+  if (termo.length < 2) return res.status(400).json({ error: 'Informe ao menos 2 caracteres para buscar' });
+
+  const { data, error } = await req.supabase
+    .from('profiles')
+    .select('id, nome, turma, usuario')
+    .eq('tipo', 'aluno')
+    .or(`nome.ilike.%${termo}%,usuario.ilike.%${termo}%`)
+    .order('nome', { ascending: true })
+    .limit(10);
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+// reset "acesso mestre": não precisa saber a senha atual do aluno — define uma
+// senha padrão e obriga a troca no próximo login
+router.patch('/:id/resetar-senha', requireAuth, async (req, res) => {
+  if (!(await exigirProfessorOuDiretor(req, res))) return;
+
+  const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(req.params.id, {
+    password: SENHA_PADRAO,
+  });
+  if (authError) return res.status(400).json({ error: authError.message });
+
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .update({ senha_temporaria: true })
+    .eq('id', req.params.id);
+  if (profileError) return res.status(400).json({ error: profileError.message });
+
+  res.json({ senhaPadrao: SENHA_PADRAO });
 });
 
 router.patch('/:id', requireAuth, async (req, res) => {

@@ -13,6 +13,8 @@ export function EvolucaoAluno() {
   const [exercicios, setExercicios] = useState(null);
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const [resetado, setResetado] = useState(null);
+  const [resetando, setResetando] = useState(false);
 
   function carregar() {
     Promise.all([api.listAlunos(token), api.exerciciosDoAluno(id, token)])
@@ -40,6 +42,23 @@ export function EvolucaoAluno() {
     }
   }
 
+  async function resetarSenha() {
+    const confirmado = window.confirm(
+      `Resetar a senha de ${aluno.nome}? Ele(a) vai precisar trocar por uma nova no próximo login.`
+    );
+    if (!confirmado) return;
+    setResetando(true);
+    setErro('');
+    try {
+      const { senhaPadrao } = await api.resetarSenhaAluno(id, token);
+      setResetado(senhaPadrao);
+    } catch (err) {
+      setErro(err.message);
+    } finally {
+      setResetando(false);
+    }
+  }
+
   return (
     <div className={styles.pagina}>
       <Link to="/professor/alunos" className={styles.voltar}>
@@ -64,6 +83,17 @@ export function EvolucaoAluno() {
             <button className={styles.botaoSecundario} onClick={alternarSituacao} disabled={salvando}>
               {aluno.situacao === 'apto_saida' ? 'Voltar para reforço' : 'Marcar reforço como concluído'}
             </button>
+          </div>
+
+          <div className={styles.situacaoBox}>
+            <button className={styles.botaoSecundario} onClick={resetarSenha} disabled={resetando}>
+              {resetando ? 'Resetando...' : 'Resetar senha do aluno'}
+            </button>
+            {resetado && (
+              <span className={styles.badgeApto}>
+                Nova senha: <strong>{resetado}</strong>
+              </span>
+            )}
           </div>
         </>
       )}
