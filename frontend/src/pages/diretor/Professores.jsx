@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
+import { ConfirmModal } from '../../components/ConfirmModal';
 import styles from '../professor/Alunos.module.css';
 
 export function Professores() {
@@ -10,6 +11,7 @@ export function Professores() {
   const [erro, setErro] = useState('');
   const [resetado, setResetado] = useState(null);
   const [resetandoId, setResetandoId] = useState(null);
+  const [pendente, setPendente] = useState(null);
 
   useEffect(() => {
     api
@@ -18,11 +20,9 @@ export function Professores() {
       .catch((err) => setErro(err.message));
   }, [token]);
 
-  async function resetarSenha(prof) {
-    const confirmado = window.confirm(
-      `Resetar a senha de ${prof.nome}? Ele(a) vai precisar trocar por uma nova no próximo login.`
-    );
-    if (!confirmado) return;
+  async function resetarSenha() {
+    const prof = pendente;
+    setPendente(null);
     setResetandoId(prof.id);
     setErro('');
     try {
@@ -67,7 +67,7 @@ export function Professores() {
             <button
               type="button"
               className={styles.botaoResetar}
-              onClick={() => resetarSenha(prof)}
+              onClick={() => setPendente(prof)}
               disabled={resetandoId === prof.id}
             >
               {resetandoId === prof.id ? 'Resetando...' : 'Resetar senha'}
@@ -75,6 +75,15 @@ export function Professores() {
           </div>
         ))}
       </div>
+
+      <ConfirmModal
+        aberto={pendente !== null}
+        titulo="Resetar senha"
+        mensagem={pendente ? `Resetar a senha de ${pendente.nome}? Ele(a) vai precisar trocar por uma nova no próximo login.` : ''}
+        textoConfirmar="Resetar"
+        onConfirmar={resetarSenha}
+        onCancelar={() => setPendente(null)}
+      />
     </div>
   );
 }

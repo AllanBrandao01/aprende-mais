@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
+import { ConfirmModal } from '../../components/ConfirmModal';
 import styles from './EvolucaoAluno.module.css';
 
 const NOME_DISCIPLINA = { portugues: 'Português', matematica: 'Matemática' };
@@ -15,6 +16,7 @@ export function EvolucaoAluno() {
   const [salvando, setSalvando] = useState(false);
   const [resetado, setResetado] = useState(null);
   const [resetando, setResetando] = useState(false);
+  const [confirmandoReset, setConfirmandoReset] = useState(false);
 
   function carregar() {
     Promise.all([api.listAlunos(token), api.exerciciosDoAluno(id, token)])
@@ -43,10 +45,7 @@ export function EvolucaoAluno() {
   }
 
   async function resetarSenha() {
-    const confirmado = window.confirm(
-      `Resetar a senha de ${aluno.nome}? Ele(a) vai precisar trocar por uma nova no próximo login.`
-    );
-    if (!confirmado) return;
+    setConfirmandoReset(false);
     setResetando(true);
     setErro('');
     try {
@@ -86,7 +85,7 @@ export function EvolucaoAluno() {
           </div>
 
           <div className={styles.situacaoBox}>
-            <button className={styles.botaoSecundario} onClick={resetarSenha} disabled={resetando}>
+            <button className={styles.botaoSecundario} onClick={() => setConfirmandoReset(true)} disabled={resetando}>
               {resetando ? 'Resetando...' : 'Resetar senha do aluno'}
             </button>
             {resetado && (
@@ -133,6 +132,15 @@ export function EvolucaoAluno() {
           </Link>
         ))}
       </div>
+
+      <ConfirmModal
+        aberto={confirmandoReset}
+        titulo="Resetar senha"
+        mensagem={aluno ? `Resetar a senha de ${aluno.nome}? Ele(a) vai precisar trocar por uma nova no próximo login.` : ''}
+        textoConfirmar="Resetar"
+        onConfirmar={resetarSenha}
+        onCancelar={() => setConfirmandoReset(false)}
+      />
     </div>
   );
 }

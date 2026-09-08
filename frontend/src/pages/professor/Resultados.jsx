@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
+import { ConfirmModal } from '../../components/ConfirmModal';
 import styles from './Resultados.module.css';
 
 export function Resultados() {
@@ -12,6 +13,7 @@ export function Resultados() {
   const [resultados, setResultados] = useState(null);
   const [erro, setErro] = useState('');
   const [excluindo, setExcluindo] = useState(false);
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
 
   useEffect(() => {
     Promise.all([api.getExercicio(id, token), api.resultados(id, token)])
@@ -23,10 +25,7 @@ export function Resultados() {
   }, [id, token]);
 
   async function excluir() {
-    const confirmado = window.confirm(
-      'Excluir este exercício? Ele some para todos os alunos atribuídos e essa ação não pode ser desfeita.'
-    );
-    if (!confirmado) return;
+    setConfirmandoExclusao(false);
     setExcluindo(true);
     try {
       await api.excluirExercicio(id, token);
@@ -59,7 +58,11 @@ export function Resultados() {
               <Link to={`/professor/${id}/editar`} className={styles.botaoSecundario}>
                 Editar
               </Link>
-              <button className={styles.botaoExcluir} onClick={excluir} disabled={excluindo}>
+              <button
+                className={styles.botaoExcluir}
+                onClick={() => setConfirmandoExclusao(true)}
+                disabled={excluindo}
+              >
                 {excluindo ? 'Excluindo...' : 'Excluir'}
               </button>
             </div>
@@ -82,6 +85,16 @@ export function Resultados() {
           </Link>
         ))}
       </div>
+
+      <ConfirmModal
+        aberto={confirmandoExclusao}
+        titulo="Excluir exercício"
+        mensagem="Ele some para todos os alunos atribuídos e essa ação não pode ser desfeita."
+        textoConfirmar="Excluir"
+        perigoso
+        onConfirmar={excluir}
+        onCancelar={() => setConfirmandoExclusao(false)}
+      />
     </div>
   );
 }

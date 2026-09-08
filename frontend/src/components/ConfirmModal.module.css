@@ -1,0 +1,69 @@
+.fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.caixa {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.caixa h2 {
+  margin: 0 0 8px;
+  color: #1e3a5f;
+  font-size: 18px;
+}
+
+.caixa p {
+  margin: 0;
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.botaoCancelar {
+  padding: 10px 16px;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  background: none;
+  color: #334155;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.botaoConfirmar,
+.botaoPerigo {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.botaoConfirmar {
+  background: #1e3a5f;
+}
+
+.botaoPerigo {
+  background: #dc2626;
+}

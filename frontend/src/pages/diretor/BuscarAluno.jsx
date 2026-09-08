@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
+import { ConfirmModal } from '../../components/ConfirmModal';
 import styles from '../professor/Alunos.module.css';
 
 export function BuscarAluno() {
@@ -11,6 +12,7 @@ export function BuscarAluno() {
   const [buscando, setBuscando] = useState(false);
   const [resetado, setResetado] = useState(null);
   const [resetandoId, setResetandoId] = useState(null);
+  const [pendente, setPendente] = useState(null);
 
   async function buscar(e) {
     e.preventDefault();
@@ -30,11 +32,9 @@ export function BuscarAluno() {
     }
   }
 
-  async function resetarSenha(aluno) {
-    const confirmado = window.confirm(
-      `Resetar a senha de ${aluno.nome}? Ele(a) vai precisar trocar por uma nova no próximo login.`
-    );
-    if (!confirmado) return;
+  async function resetarSenha() {
+    const aluno = pendente;
+    setPendente(null);
     setResetandoId(aluno.id);
     setErro('');
     try {
@@ -91,7 +91,7 @@ export function BuscarAluno() {
             <button
               type="button"
               className={styles.botaoResetar}
-              onClick={() => resetarSenha(aluno)}
+              onClick={() => setPendente(aluno)}
               disabled={resetandoId === aluno.id}
             >
               {resetandoId === aluno.id ? 'Resetando...' : 'Resetar senha'}
@@ -99,6 +99,15 @@ export function BuscarAluno() {
           </div>
         ))}
       </div>
+
+      <ConfirmModal
+        aberto={pendente !== null}
+        titulo="Resetar senha"
+        mensagem={pendente ? `Resetar a senha de ${pendente.nome}? Ele(a) vai precisar trocar por uma nova no próximo login.` : ''}
+        textoConfirmar="Resetar"
+        onConfirmar={resetarSenha}
+        onCancelar={() => setPendente(null)}
+      />
     </div>
   );
 }
