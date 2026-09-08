@@ -20,3 +20,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/exercicios', exerciciosRouter);
 app.use('/api/alunos', alunosRouter);
 app.use('/api/professores', professoresRouter);
+
+// a Vercel detecta "Express" pela convenção src/app.js e exige um default
+// export (usa esse arquivo direto como a função serverless)
+export default app;
