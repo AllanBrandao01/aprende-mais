@@ -24,8 +24,16 @@ export function Layout() {
             <button onClick={aumentarFonte} aria-label="Aumentar tamanho da fonte">
               A+
             </button>
-            <button onClick={alternarContraste} aria-pressed={altoContraste} aria-label="Alternar alto contraste">
-              Contraste
+            <button
+              onClick={alternarContraste}
+              aria-pressed={altoContraste}
+              aria-label="Alternar alto contraste"
+              className={styles.botaoIcone}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" />
+              </svg>
             </button>
             <button onClick={logout}>Sair</button>
           </div>
