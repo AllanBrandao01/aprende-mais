@@ -103,6 +103,17 @@ router.patch('/:id/resetar-senha', requireAuth, async (req, res) => {
   res.json({ senhaPadrao: SENHA_PADRAO });
 });
 
+// exclui a conta do aluno por completo (ex: aluno que saiu da escola) — apaga
+// o usuário de autenticação, o que já cascateia perfil, exercícios atribuídos
+// e respostas dele via as foreign keys "on delete cascade"
+router.delete('/:id', requireAuth, async (req, res) => {
+  if (!(await exigirProfessorOuDiretor(req, res))) return;
+
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(req.params.id);
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(204).send();
+});
+
 router.patch('/:id', requireAuth, async (req, res) => {
   const { situacao } = req.body;
   if (!['em_reforco', 'apto_saida'].includes(situacao)) {

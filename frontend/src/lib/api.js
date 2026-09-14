@@ -32,6 +32,7 @@ export const api = {
   criarAluno: (payload, token) => request('/alunos', { method: 'POST', body: payload, token }),
   atualizarSituacao: (alunoId, situacao, token) =>
     request(`/alunos/${alunoId}`, { method: 'PATCH', body: { situacao }, token }),
+  excluirAluno: (alunoId, token) => request(`/alunos/${alunoId}`, { method: 'DELETE', token }),
   exerciciosDoAluno: (alunoId, token) => request(`/alunos/${alunoId}/exercicios`, { token }),
   buscarAlunos: (termo, token) => request(`/alunos/buscar?q=${encodeURIComponent(termo)}`, { token }),
   resetarSenhaAluno: (alunoId, token) => request(`/alunos/${alunoId}/resetar-senha`, { method: 'PATCH', token }),

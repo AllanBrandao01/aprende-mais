@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import { ConfirmModal } from '../../components/ConfirmModal';
@@ -10,6 +10,7 @@ const NOME_DISCIPLINA = { portugues: 'Português', matematica: 'Matemática' };
 export function EvolucaoAluno() {
   const { id } = useParams();
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [alunos, setAlunos] = useState(null);
   const [exercicios, setExercicios] = useState(null);
   const [erro, setErro] = useState('');
@@ -17,6 +18,8 @@ export function EvolucaoAluno() {
   const [resetado, setResetado] = useState(null);
   const [resetando, setResetando] = useState(false);
   const [confirmandoReset, setConfirmandoReset] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
 
   function carregar() {
     Promise.all([api.listAlunos(token), api.exerciciosDoAluno(id, token)])
@@ -58,6 +61,18 @@ export function EvolucaoAluno() {
     }
   }
 
+  async function excluirAluno() {
+    setConfirmandoExclusao(false);
+    setExcluindo(true);
+    try {
+      await api.excluirAluno(id, token);
+      navigate('/professor/alunos');
+    } catch (err) {
+      setErro(err.message);
+      setExcluindo(false);
+    }
+  }
+
   return (
     <div className={styles.pagina}>
       <Link to="/professor/alunos" className={styles.voltar}>
@@ -93,6 +108,16 @@ export function EvolucaoAluno() {
                 Nova senha: <strong>{resetado}</strong>
               </span>
             )}
+          </div>
+
+          <div className={styles.situacaoBox}>
+            <button
+              className={styles.botaoExcluir}
+              onClick={() => setConfirmandoExclusao(true)}
+              disabled={excluindo}
+            >
+              {excluindo ? 'Excluindo...' : 'Excluir aluno'}
+            </button>
           </div>
         </>
       )}
@@ -140,6 +165,20 @@ export function EvolucaoAluno() {
         textoConfirmar="Resetar"
         onConfirmar={resetarSenha}
         onCancelar={() => setConfirmandoReset(false)}
+      />
+
+      <ConfirmModal
+        aberto={confirmandoExclusao}
+        titulo="Excluir aluno"
+        mensagem={
+          aluno
+            ? `Excluir a conta de ${aluno.nome} permanentemente? Ele(a) perde acesso e todo o histórico de exercícios é apagado. Essa ação não pode ser desfeita.`
+            : ''
+        }
+        textoConfirmar="Excluir"
+        perigoso
+        onConfirmar={excluirAluno}
+        onCancelar={() => setConfirmandoExclusao(false)}
       />
     </div>
   );
