@@ -1,0 +1,134 @@
+.fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.caixa {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.caixa h2 {
+  margin: 0 0 16px;
+  color: #1e3a5f;
+  font-size: 18px;
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filtros input {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+}
+
+.filtros select {
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+}
+
+.linkBotao {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #1e3a5f;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 2px;
+  margin-bottom: 8px;
+  min-height: 24px;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px;
+  font-size: 14px;
+  color: #1e293b;
+  min-height: 24px;
+  border-radius: 6px;
+}
+
+.item:hover {
+  background: #f8fafc;
+}
+
+.dica {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+}
+
+.rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.contador {
+  font-size: 13px;
+  color: #475569;
+}
+
+.acoes {
+  display: flex;
+  gap: 10px;
+}
+
+.botaoCancelar {
+  padding: 10px 16px;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  background: none;
+  color: #334155;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.botaoPrincipal {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #1e3a5f;
+  color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+}

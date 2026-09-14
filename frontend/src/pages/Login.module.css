@@ -33,7 +33,7 @@
   font-size: 15px;
 }
 
-label {
+.loginCard label {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -41,8 +41,8 @@ label {
   color: #334155;
 }
 
-input,
-select {
+.loginCard input,
+.loginCard select {
   font-size: 16px;
   padding: 12px;
   border: 1px solid #cbd5e1;

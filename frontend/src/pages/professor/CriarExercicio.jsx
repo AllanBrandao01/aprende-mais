@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import { arquivoParaBase64 } from '../../lib/midia';
+import { SelecionarAlunosModal } from '../../components/SelecionarAlunosModal';
 import styles from './CriarExercicio.module.css';
+
+const NOME_TIPO_QUESTAO = { multipla_escolha: 'Múltipla escolha', dissertativa: 'Dissertativa' };
 
 function questaoVazia() {
   return {
@@ -15,7 +18,27 @@ function questaoVazia() {
   };
 }
 
+// valida no navegador antes de enviar — sem isso, um campo obrigatório vazio
+// dentro de uma questão recolhida (accordion) travaria o envio sem nenhum
+// aviso visível, já que o campo com erro nem aparece na tela
+function validarQuestoes(questoes) {
+  for (const [i, q] of questoes.entries()) {
+    if (!q.enunciado.trim()) return { indice: i, mensagem: `Questão ${i + 1}: preencha o enunciado.` };
+    if (q.tipo === 'dissertativa') continue;
+    if (q.alternativas.length < 2 || q.alternativas.some((a) => !a.texto.trim())) {
+      return { indice: i, mensagem: `Questão ${i + 1}: preencha todas as alternativas.` };
+    }
+    if (!q.alternativas.some((a) => a.correta)) {
+      return { indice: i, mensagem: `Questão ${i + 1}: marque a alternativa correta.` };
+    }
+  }
+  return null;
+}
+
 function CampoMidia({ titulo, placeholder, url, tipo, onUrlChange, onTipoChange }) {
+  const inputArquivoRef = useRef(null);
+  const isArquivo = url.startsWith('data:');
+
   async function selecionarArquivo(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -25,26 +48,60 @@ function CampoMidia({ titulo, placeholder, url, tipo, onUrlChange, onTipoChange 
 
   return (
     <div className={styles.campoMidia}>
-      <div className={styles.linha}>
-        <label>
-          {titulo}
-          <input value={url} onChange={(e) => onUrlChange(e.target.value)} placeholder={placeholder} />
-        </label>
-        {url && (
-          <label>
-            Tipo
-            <select value={tipo} onChange={(e) => onTipoChange(e.target.value)}>
-              <option value="imagem">Imagem</option>
-              <option value="video">Vídeo (YouTube)</option>
-            </select>
-          </label>
+      <label>{titulo}</label>
+      <div className={styles.mediaLinha}>
+        {isArquivo ? (
+          <span className={styles.mediaCarregada}>Imagem enviada do computador</span>
+        ) : (
+          <input
+            value={url}
+            onChange={(e) => onUrlChange(e.target.value)}
+            placeholder={placeholder}
+            className={styles.mediaInput}
+          />
         )}
+        <button
+          type="button"
+          className={styles.botaoAnexo}
+          onClick={() => inputArquivoRef.current?.click()}
+          aria-label="Enviar imagem do computador"
+          title="Enviar imagem do computador"
+        >
+          🖼️
+        </button>
+        <input
+          ref={inputArquivoRef}
+          type="file"
+          accept="image/*"
+          onChange={selecionarArquivo}
+          className={styles.inputArquivoOculto}
+          tabIndex={-1}
+        />
       </div>
-      <label className={styles.uploadLabel}>
-        ou enviar imagem do computador
-        <input type="file" accept="image/*" onChange={selecionarArquivo} />
-      </label>
-      {url && tipo === 'imagem' && <img src={url} alt="Pré-visualização da mídia" className={styles.preview} />}
+
+      {url && (
+        <div className={styles.previewLinha}>
+          {tipo === 'imagem' ? (
+            <img src={url} alt="Pré-visualização da mídia" className={styles.preview} />
+          ) : (
+            <span className={styles.dica}>Vídeo do YouTube configurado.</span>
+          )}
+          <div className={styles.previewAcoes}>
+            {!isArquivo && (
+              <label className={styles.tipoInline}>
+                Tipo
+                <select value={tipo} onChange={(e) => onTipoChange(e.target.value)}>
+                  <option value="imagem">Imagem</option>
+                  <option value="video">Vídeo (YouTube)</option>
+                </select>
+              </label>
+            )}
+            <button type="button" className={styles.linkBotaoRemover} onClick={() => onUrlChange('')}>
+              remover mídia
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -60,8 +117,10 @@ export function CriarExercicio() {
   const [midiaUrl, setMidiaUrl] = useState('');
   const [midiaTipo, setMidiaTipo] = useState('imagem');
   const [questoes, setQuestoes] = useState([questaoVazia()]);
+  const [questaoAberta, setQuestaoAberta] = useState(0);
   const [alunos, setAlunos] = useState(null);
   const [alunoIds, setAlunoIds] = useState([]);
+  const [modalAlunosAberto, setModalAlunosAberto] = useState(false);
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(edicao);
   const [salvando, setSalvando] = useState(false);
@@ -92,6 +151,7 @@ export function CriarExercicio() {
             alternativas: q.alternativas.map((a) => ({ texto: a.texto, correta: a.correta })),
           }))
         );
+        setQuestaoAberta(null);
         setAlunoIds(ex.alunos.map((a) => a.id));
       })
       .catch((err) => setErro(err.message))
@@ -126,14 +186,12 @@ export function CriarExercicio() {
 
   function adicionarQuestao() {
     setQuestoes((qs) => [...qs, questaoVazia()]);
+    setQuestaoAberta(questoes.length);
   }
 
   function removerQuestao(i) {
     setQuestoes((qs) => qs.filter((_, idx) => idx !== i));
-  }
-
-  function alternarAluno(alunoId) {
-    setAlunoIds((ids) => (ids.includes(alunoId) ? ids.filter((x) => x !== alunoId) : [...ids, alunoId]));
+    setQuestaoAberta(null);
   }
 
   async function enviar(e) {
@@ -141,6 +199,12 @@ export function CriarExercicio() {
     setErro('');
     if (alunoIds.length === 0) {
       setErro('Selecione ao menos um aluno para receber o exercício.');
+      return;
+    }
+    const invalida = validarQuestoes(questoes);
+    if (invalida) {
+      setQuestaoAberta(invalida.indice);
+      setErro(invalida.mensagem);
       return;
     }
     setSalvando(true);
@@ -197,106 +261,143 @@ export function CriarExercicio() {
           onTipoChange={setMidiaTipo}
         />
 
-        <fieldset className={styles.questao}>
-          <legend>Direcionar para</legend>
+        <div className={styles.questao}>
+          <div className={styles.blocoTopo}>
+            <strong>Direcionar para</strong>
+            <button type="button" className={styles.linkBotao} onClick={() => setModalAlunosAberto(true)}>
+              {alunoIds.length === 0 ? '+ Selecionar alunos' : 'Editar seleção'}
+            </button>
+          </div>
           {alunos === null && <p className={styles.dica}>Carregando alunos...</p>}
           {alunos?.length === 0 && <p className={styles.dica}>Nenhum aluno cadastrado ainda.</p>}
-          <div className={styles.listaAlunos}>
-            {alunos?.map((aluno) => (
-              <label key={aluno.id} className={styles.itemAluno}>
-                <input
-                  type="checkbox"
-                  checked={alunoIds.includes(aluno.id)}
-                  onChange={() => alternarAluno(aluno.id)}
-                />
-                {aluno.nome}
-                {aluno.turma && <span className={styles.dica}> — {aluno.turma}</span>}
+          {alunoIds.length === 0 && alunos?.length > 0 && (
+            <p className={styles.dica}>Nenhum aluno selecionado ainda.</p>
+          )}
+          {alunoIds.length > 0 && (
+            <div className={styles.chips}>
+              {alunoIds.map((alunoId) => {
+                const aluno = alunos?.find((a) => a.id === alunoId);
+                if (!aluno) return null;
+                return (
+                  <span className={styles.chip} key={alunoId}>
+                    {aluno.nome}
+                    <button
+                      type="button"
+                      onClick={() => setAlunoIds((ids) => ids.filter((x) => x !== alunoId))}
+                      aria-label={`Remover ${aluno.nome} da seleção`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {questoes.map((questao, qi) =>
+          questaoAberta === qi ? (
+            <fieldset className={styles.questao} key={qi}>
+              <legend>Questão {qi + 1}</legend>
+
+              <label>
+                Tipo de questão
+                <select value={questao.tipo} onChange={(e) => atualizarQuestao(qi, 'tipo', e.target.value)}>
+                  <option value="multipla_escolha">Múltipla escolha</option>
+                  <option value="dissertativa">Dissertativa (resposta livre)</option>
+                </select>
               </label>
-            ))}
-          </div>
-        </fieldset>
 
-        {questoes.map((questao, qi) => (
-          <fieldset className={styles.questao} key={qi}>
-            <legend>Questão {qi + 1}</legend>
+              <label>
+                Enunciado
+                <input value={questao.enunciado} onChange={(e) => atualizarQuestao(qi, 'enunciado', e.target.value)} />
+              </label>
 
-            <label>
-              Tipo de questão
-              <select value={questao.tipo} onChange={(e) => atualizarQuestao(qi, 'tipo', e.target.value)}>
-                <option value="multipla_escolha">Múltipla escolha</option>
-                <option value="dissertativa">Dissertativa (resposta livre)</option>
-              </select>
-            </label>
-
-            <label>
-              Enunciado
-              <input
-                value={questao.enunciado}
-                onChange={(e) => atualizarQuestao(qi, 'enunciado', e.target.value)}
-                required
+              <CampoMidia
+                titulo="Imagem ou vídeo desta questão (opcional)"
+                placeholder="https://..."
+                url={questao.midia_url}
+                tipo={questao.midia_tipo}
+                onUrlChange={(v) => atualizarQuestao(qi, 'midia_url', v)}
+                onTipoChange={(v) => atualizarQuestao(qi, 'midia_tipo', v)}
               />
-            </label>
 
-            <CampoMidia
-              titulo="Imagem ou vídeo desta questão (opcional)"
-              placeholder="https://..."
-              url={questao.midia_url}
-              tipo={questao.midia_tipo}
-              onUrlChange={(v) => atualizarQuestao(qi, 'midia_url', v)}
-              onTipoChange={(v) => atualizarQuestao(qi, 'midia_tipo', v)}
-            />
-
-            {questao.tipo === 'dissertativa' ? (
-              <p className={styles.dica}>
-                O aluno vai responder com um texto livre. Essa resposta não entra no cálculo de % de acerto — ela
-                fica disponível para você ler na tela de revisão do aluno.
-              </p>
-            ) : (
-              <>
-                <p className={styles.dica}>Marque a alternativa correta:</p>
-                {questao.alternativas.map((alt, ai) => (
-                  <div className={styles.alternativa} key={ai}>
-                    <label className={styles.radioAlvo}>
+              {questao.tipo === 'dissertativa' ? (
+                <p className={styles.dica}>
+                  O aluno vai responder com um texto livre. Essa resposta não entra no cálculo de % de acerto — ela
+                  fica disponível para você ler na tela de revisão do aluno.
+                </p>
+              ) : (
+                <>
+                  <p className={styles.dica}>Marque a alternativa correta:</p>
+                  {questao.alternativas.map((alt, ai) => (
+                    <div className={styles.alternativa} key={ai}>
+                      <label className={styles.radioAlvo}>
+                        <input
+                          type="radio"
+                          name={`correta-${qi}`}
+                          checked={alt.correta}
+                          onChange={() => marcarCorreta(qi, ai)}
+                          aria-label={`Marcar alternativa ${ai + 1} da questão ${qi + 1} como correta`}
+                        />
+                      </label>
                       <input
-                        type="radio"
-                        name={`correta-${qi}`}
-                        checked={alt.correta}
-                        onChange={() => marcarCorreta(qi, ai)}
-                        aria-label={`Marcar alternativa ${ai + 1} da questão ${qi + 1} como correta`}
+                        value={alt.texto}
+                        onChange={(e) => atualizarAlternativa(qi, ai, e.target.value)}
+                        placeholder={`Alternativa ${ai + 1}`}
+                        aria-label={`Texto da alternativa ${ai + 1} da questão ${qi + 1}`}
                       />
-                    </label>
-                    <input
-                      value={alt.texto}
-                      onChange={(e) => atualizarAlternativa(qi, ai, e.target.value)}
-                      placeholder={`Alternativa ${ai + 1}`}
-                      aria-label={`Texto da alternativa ${ai + 1} da questão ${qi + 1}`}
-                      required
-                    />
-                  </div>
-                ))}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className={styles.linkBotao}
+                    onClick={() => adicionarAlternativa(qi)}
+                    aria-label={`Adicionar alternativa à questão ${qi + 1}`}
+                  >
+                    + alternativa
+                  </button>
+                </>
+              )}
+
+              <div className={styles.blocoTopo}>
+                <button type="button" className={styles.linkBotao} onClick={() => setQuestaoAberta(null)}>
+                  recolher
+                </button>
+                {questoes.length > 1 && (
+                  <button
+                    type="button"
+                    className={styles.linkBotaoRemover}
+                    onClick={() => removerQuestao(qi)}
+                    aria-label={`Remover questão ${qi + 1}`}
+                  >
+                    remover questão
+                  </button>
+                )}
+              </div>
+            </fieldset>
+          ) : (
+            <div className={styles.questaoResumo} key={qi}>
+              <button type="button" className={styles.questaoResumoBotao} onClick={() => setQuestaoAberta(qi)}>
+                <strong>Questão {qi + 1}</strong>
+                <span className={styles.dica}>
+                  {NOME_TIPO_QUESTAO[questao.tipo]}
+                  {questao.enunciado ? ` — ${questao.enunciado}` : ' — (sem enunciado ainda)'}
+                </span>
+              </button>
+              {questoes.length > 1 && (
                 <button
                   type="button"
-                  className={styles.linkBotao}
-                  onClick={() => adicionarAlternativa(qi)}
-                  aria-label={`Adicionar alternativa à questão ${qi + 1}`}
+                  className={styles.linkBotaoRemover}
+                  onClick={() => removerQuestao(qi)}
+                  aria-label={`Remover questão ${qi + 1}`}
                 >
-                  + alternativa
+                  remover
                 </button>
-              </>
-            )}
-
-            {questoes.length > 1 && (
-              <button
-                type="button"
-                className={styles.linkBotaoRemover}
-                onClick={() => removerQuestao(qi)}
-                aria-label={`Remover questão ${qi + 1}`}
-              >
-                remover questão
-              </button>
-            )}
-          </fieldset>
-        ))}
+              )}
+            </div>
+          )
+        )}
 
         <button type="button" className={styles.botaoSecundario} onClick={adicionarQuestao}>
           + adicionar questão
@@ -324,6 +425,17 @@ export function CriarExercicio() {
           </Link>
         </div>
       </form>
+
+      <SelecionarAlunosModal
+        aberto={modalAlunosAberto}
+        alunos={alunos}
+        selecionados={alunoIds}
+        onConfirmar={(ids) => {
+          setAlunoIds(ids);
+          setModalAlunosAberto(false);
+        }}
+        onFechar={() => setModalAlunosAberto(false)}
+      />
     </div>
   );
 }
