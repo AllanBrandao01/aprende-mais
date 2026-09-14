@@ -1,5 +1,4 @@
 -- Aprende+ — schema do banco (Supabase / PostgreSQL)
--- Rode em: SQL Editor > New query > Run. Reexecutável — remove e recria tudo.
 
 drop view if exists public.resultados;
 drop function if exists public.pode_ver_exercicio(uuid) cascade;
@@ -173,45 +172,35 @@ create policy "profiles_insert_own" on public.profiles
 create policy "profiles_update_professor" on public.profiles
   for update using (public.is_professor());
 
+-- qualquer professor pode editar/excluir o exercício de qualquer colega —
+-- não é um "dono" exclusivo, é um acervo compartilhado da escola
 create policy "exercicios_select" on public.exercicios
   for select using (public.pode_ver_exercicio(id));
 create policy "exercicios_insert_professor" on public.exercicios
   for insert with check (public.is_professor());
-create policy "exercicios_update_own" on public.exercicios
-  for update using (criado_por = auth.uid());
-create policy "exercicios_delete_own" on public.exercicios
-  for delete using (criado_por = auth.uid());
+create policy "exercicios_update_professor" on public.exercicios
+  for update using (public.is_professor());
+create policy "exercicios_delete_professor" on public.exercicios
+  for delete using (public.is_professor());
 
 create policy "exercicio_alunos_select" on public.exercicio_alunos
   for select using (aluno_id = auth.uid() or public.is_professor());
 create policy "exercicio_alunos_insert_professor" on public.exercicio_alunos
-  for insert with check (
-    exists (select 1 from public.exercicios e where e.id = exercicio_id and e.criado_por = auth.uid())
-  );
+  for insert with check (public.is_professor());
 create policy "exercicio_alunos_delete_professor" on public.exercicio_alunos
-  for delete using (
-    exists (select 1 from public.exercicios e where e.id = exercicio_id and e.criado_por = auth.uid())
-  );
+  for delete using (public.is_professor());
 
 create policy "questoes_select" on public.questoes
   for select using (public.pode_ver_exercicio(exercicio_id));
-create policy "questoes_write_owner" on public.questoes
-  for all using (
-    exists (select 1 from public.exercicios e where e.id = exercicio_id and e.criado_por = auth.uid())
-  );
+create policy "questoes_write_professor" on public.questoes
+  for all using (public.is_professor());
 
 create policy "alternativas_select" on public.alternativas
   for select using (
     exists (select 1 from public.questoes q where q.id = questao_id and public.pode_ver_exercicio(q.exercicio_id))
   );
-create policy "alternativas_write_owner" on public.alternativas
-  for all using (
-    exists (
-      select 1 from public.questoes q
-      join public.exercicios e on e.id = q.exercicio_id
-      where q.id = questao_id and e.criado_por = auth.uid()
-    )
-  );
+create policy "alternativas_write_professor" on public.alternativas
+  for all using (public.is_professor());
 
 create policy "respostas_select_own_or_professor" on public.respostas_aluno
   for select using (aluno_id = auth.uid() or public.is_professor());
