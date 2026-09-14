@@ -261,9 +261,121 @@ export function CriarExercicio() {
           onTipoChange={setMidiaTipo}
         />
 
+        {questoes.map((questao, qi) => {
+          const aberta = questaoAberta === qi;
+          return (
+            <div className={styles.questao} key={qi}>
+              <div className={styles.questaoCabecalho}>
+                <button
+                  type="button"
+                  className={styles.questaoTitulo}
+                  onClick={() => setQuestaoAberta(aberta ? null : qi)}
+                  aria-expanded={aberta}
+                >
+                  <span className={styles.seta} aria-hidden="true">
+                    {aberta ? '▾' : '▸'}
+                  </span>
+                  <strong className={styles.tituloSecao}>Questão {qi + 1}</strong>
+                  {!aberta && (
+                    <span className={styles.dica}>
+                      {NOME_TIPO_QUESTAO[questao.tipo]}
+                      {questao.enunciado ? ` — ${questao.enunciado}` : ' — (sem enunciado ainda)'}
+                    </span>
+                  )}
+                </button>
+                {questoes.length > 1 && (
+                  <button
+                    type="button"
+                    className={styles.linkBotaoRemover}
+                    onClick={() => removerQuestao(qi)}
+                    aria-label={`Remover questão ${qi + 1}`}
+                  >
+                    remover
+                  </button>
+                )}
+              </div>
+
+              {aberta && (
+                <div className={styles.questaoCorpo}>
+                  <label>
+                    Tipo de questão
+                    <select value={questao.tipo} onChange={(e) => atualizarQuestao(qi, 'tipo', e.target.value)}>
+                      <option value="multipla_escolha">Múltipla escolha</option>
+                      <option value="dissertativa">Dissertativa (resposta livre)</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    Enunciado
+                    <input
+                      value={questao.enunciado}
+                      onChange={(e) => atualizarQuestao(qi, 'enunciado', e.target.value)}
+                    />
+                  </label>
+
+                  <CampoMidia
+                    titulo="Imagem ou vídeo desta questão (opcional)"
+                    placeholder="https://..."
+                    url={questao.midia_url}
+                    tipo={questao.midia_tipo}
+                    onUrlChange={(v) => atualizarQuestao(qi, 'midia_url', v)}
+                    onTipoChange={(v) => atualizarQuestao(qi, 'midia_tipo', v)}
+                  />
+
+                  {questao.tipo === 'dissertativa' ? (
+                    <p className={styles.dica}>
+                      O aluno vai responder com um texto livre. Essa resposta não entra no cálculo de % de acerto —
+                      ela fica disponível para você ler na tela de revisão do aluno.
+                    </p>
+                  ) : (
+                    <>
+                      <p className={styles.dica}>Marque a alternativa correta:</p>
+                      {questao.alternativas.map((alt, ai) => (
+                        <div className={styles.alternativa} key={ai}>
+                          <label className={styles.radioAlvo}>
+                            <input
+                              type="radio"
+                              name={`correta-${qi}`}
+                              checked={alt.correta}
+                              onChange={() => marcarCorreta(qi, ai)}
+                              aria-label={`Marcar alternativa ${ai + 1} da questão ${qi + 1} como correta`}
+                            />
+                          </label>
+                          <input
+                            value={alt.texto}
+                            onChange={(e) => atualizarAlternativa(qi, ai, e.target.value)}
+                            placeholder={`Alternativa ${ai + 1}`}
+                            aria-label={`Texto da alternativa ${ai + 1} da questão ${qi + 1}`}
+                          />
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        className={styles.linkBotao}
+                        onClick={() => adicionarAlternativa(qi)}
+                        aria-label={`Adicionar alternativa à questão ${qi + 1}`}
+                      >
+                        + alternativa
+                      </button>
+                    </>
+                  )}
+
+                  <button type="button" className={styles.linkBotao} onClick={() => setQuestaoAberta(null)}>
+                    recolher
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        <button type="button" className={styles.botaoSecundario} onClick={adicionarQuestao}>
+          + adicionar questão
+        </button>
+
         <div className={styles.questao}>
           <div className={styles.blocoTopo}>
-            <strong>Direcionar para</strong>
+            <strong className={styles.tituloSecao}>Direcionar para</strong>
             <button type="button" className={styles.linkBotao} onClick={() => setModalAlunosAberto(true)}>
               {alunoIds.length === 0 ? '+ Selecionar alunos' : 'Editar seleção'}
             </button>
@@ -271,7 +383,7 @@ export function CriarExercicio() {
           {alunos === null && <p className={styles.dica}>Carregando alunos...</p>}
           {alunos?.length === 0 && <p className={styles.dica}>Nenhum aluno cadastrado ainda.</p>}
           {alunoIds.length === 0 && alunos?.length > 0 && (
-            <p className={styles.dica}>Nenhum aluno selecionado ainda.</p>
+            <p className={`${styles.dica} ${styles.dicaVazio}`}>Nenhum aluno selecionado ainda.</p>
           )}
           {alunoIds.length > 0 && (
             <div className={styles.chips}>
@@ -294,114 +406,6 @@ export function CriarExercicio() {
             </div>
           )}
         </div>
-
-        {questoes.map((questao, qi) =>
-          questaoAberta === qi ? (
-            <fieldset className={styles.questao} key={qi}>
-              <legend>Questão {qi + 1}</legend>
-
-              <label>
-                Tipo de questão
-                <select value={questao.tipo} onChange={(e) => atualizarQuestao(qi, 'tipo', e.target.value)}>
-                  <option value="multipla_escolha">Múltipla escolha</option>
-                  <option value="dissertativa">Dissertativa (resposta livre)</option>
-                </select>
-              </label>
-
-              <label>
-                Enunciado
-                <input value={questao.enunciado} onChange={(e) => atualizarQuestao(qi, 'enunciado', e.target.value)} />
-              </label>
-
-              <CampoMidia
-                titulo="Imagem ou vídeo desta questão (opcional)"
-                placeholder="https://..."
-                url={questao.midia_url}
-                tipo={questao.midia_tipo}
-                onUrlChange={(v) => atualizarQuestao(qi, 'midia_url', v)}
-                onTipoChange={(v) => atualizarQuestao(qi, 'midia_tipo', v)}
-              />
-
-              {questao.tipo === 'dissertativa' ? (
-                <p className={styles.dica}>
-                  O aluno vai responder com um texto livre. Essa resposta não entra no cálculo de % de acerto — ela
-                  fica disponível para você ler na tela de revisão do aluno.
-                </p>
-              ) : (
-                <>
-                  <p className={styles.dica}>Marque a alternativa correta:</p>
-                  {questao.alternativas.map((alt, ai) => (
-                    <div className={styles.alternativa} key={ai}>
-                      <label className={styles.radioAlvo}>
-                        <input
-                          type="radio"
-                          name={`correta-${qi}`}
-                          checked={alt.correta}
-                          onChange={() => marcarCorreta(qi, ai)}
-                          aria-label={`Marcar alternativa ${ai + 1} da questão ${qi + 1} como correta`}
-                        />
-                      </label>
-                      <input
-                        value={alt.texto}
-                        onChange={(e) => atualizarAlternativa(qi, ai, e.target.value)}
-                        placeholder={`Alternativa ${ai + 1}`}
-                        aria-label={`Texto da alternativa ${ai + 1} da questão ${qi + 1}`}
-                      />
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className={styles.linkBotao}
-                    onClick={() => adicionarAlternativa(qi)}
-                    aria-label={`Adicionar alternativa à questão ${qi + 1}`}
-                  >
-                    + alternativa
-                  </button>
-                </>
-              )}
-
-              <div className={styles.blocoTopo}>
-                <button type="button" className={styles.linkBotao} onClick={() => setQuestaoAberta(null)}>
-                  recolher
-                </button>
-                {questoes.length > 1 && (
-                  <button
-                    type="button"
-                    className={styles.linkBotaoRemover}
-                    onClick={() => removerQuestao(qi)}
-                    aria-label={`Remover questão ${qi + 1}`}
-                  >
-                    remover questão
-                  </button>
-                )}
-              </div>
-            </fieldset>
-          ) : (
-            <div className={styles.questaoResumo} key={qi}>
-              <button type="button" className={styles.questaoResumoBotao} onClick={() => setQuestaoAberta(qi)}>
-                <strong>Questão {qi + 1}</strong>
-                <span className={styles.dica}>
-                  {NOME_TIPO_QUESTAO[questao.tipo]}
-                  {questao.enunciado ? ` — ${questao.enunciado}` : ' — (sem enunciado ainda)'}
-                </span>
-              </button>
-              {questoes.length > 1 && (
-                <button
-                  type="button"
-                  className={styles.linkBotaoRemover}
-                  onClick={() => removerQuestao(qi)}
-                  aria-label={`Remover questão ${qi + 1}`}
-                >
-                  remover
-                </button>
-              )}
-            </div>
-          )
-        )}
-
-        <button type="button" className={styles.botaoSecundario} onClick={adicionarQuestao}>
-          + adicionar questão
-        </button>
 
         {edicao && (
           <p className={styles.dica}>
