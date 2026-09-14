@@ -91,33 +91,36 @@ export function EvolucaoAluno() {
           <p className={styles.subtitulo}>{aluno.turma ? `Turma ${aluno.turma}` : 'Sem turma'}</p>
 
           <div className={styles.situacaoBox}>
-            <span className={aluno.situacao === 'apto_saida' ? styles.badgeApto : styles.badgeReforco}>
-              {aluno.situacao === 'apto_saida' ? 'Reforço concluído' : 'Em reforço'}
-            </span>
-            <button className={styles.botaoSecundario} onClick={alternarSituacao} disabled={salvando}>
-              {aluno.situacao === 'apto_saida' ? 'Voltar para reforço' : 'Marcar reforço como concluído'}
-            </button>
-          </div>
+            <div className={styles.situacaoLinha}>
+              <span className={aluno.situacao === 'apto_saida' ? styles.badgeApto : styles.badgeReforco}>
+                {aluno.situacao === 'apto_saida' ? 'Reforço concluído' : 'Em reforço'}
+              </span>
+              <button className={styles.botaoSecundario} onClick={alternarSituacao} disabled={salvando}>
+                {aluno.situacao === 'apto_saida' ? 'Voltar para reforço' : 'Marcar reforço como concluído'}
+              </button>
+            </div>
 
-          <div className={styles.situacaoBox}>
-            <button className={styles.botaoSecundario} onClick={() => setConfirmandoReset(true)} disabled={resetando}>
-              {resetando ? 'Resetando...' : 'Resetar senha do aluno'}
-            </button>
+            <div className={styles.acoesSecundarias}>
+              <button
+                className={styles.linkBotao}
+                onClick={() => setConfirmandoReset(true)}
+                disabled={resetando}
+              >
+                {resetando ? 'Resetando...' : 'Resetar senha do aluno'}
+              </button>
+              <button
+                className={styles.linkBotaoPerigo}
+                onClick={() => setConfirmandoExclusao(true)}
+                disabled={excluindo}
+              >
+                {excluindo ? 'Excluindo...' : 'Excluir aluno'}
+              </button>
+            </div>
             {resetado && (
               <span className={styles.badgeApto}>
                 Nova senha: <strong>{resetado}</strong>
               </span>
             )}
-          </div>
-
-          <div className={styles.situacaoBox}>
-            <button
-              className={styles.botaoExcluir}
-              onClick={() => setConfirmandoExclusao(true)}
-              disabled={excluindo}
-            >
-              {excluindo ? 'Excluindo...' : 'Excluir aluno'}
-            </button>
           </div>
         </>
       )}
