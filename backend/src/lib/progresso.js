@@ -1,7 +1,5 @@
-// Cruza exercícios + questões + respostas de UM aluno para calcular, por exercício,
-// quantas questões existem, quantas foram respondidas e o % de acerto.
-// Dissertativas entram na contagem de "respondidas" (para concluido) mas não têm
-// gabarito automático, então ficam de fora do percentual (correta = null).
+// dissertativas contam como "respondidas" (para concluído) mas não têm gabarito
+// automático, então ficam de fora do percentual de acerto (correta = null)
 export function calcularProgresso(exerciciosBase, questoes, respostas) {
   const exercicioDaQuestao = {};
   const totalPorExercicio = {};

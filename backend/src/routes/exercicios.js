@@ -223,8 +223,6 @@ router.get('/:id/resultados', requireAuth, async (req, res) => {
   res.json(data);
 });
 
-// respostas de um aluno específico para um exercício — usado tanto pelo próprio
-// aluno (retomar após recarregar a página) quanto pelo professor (tela de revisão)
 router.get('/:id/respostas', requireAuth, async (req, res) => {
   const alunoId = req.query.aluno_id || req.user.id;
   if (alunoId !== req.user.id) {

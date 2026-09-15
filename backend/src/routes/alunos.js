@@ -84,8 +84,6 @@ router.get('/buscar', requireAuth, async (req, res) => {
   res.json(data);
 });
 
-// reset "acesso mestre": não precisa saber a senha atual do aluno — define uma
-// senha padrão e obriga a troca no próximo login
 router.patch('/:id/resetar-senha', requireAuth, async (req, res) => {
   if (!(await exigirProfessorOuDiretor(req, res))) return;
 
@@ -129,9 +127,6 @@ router.patch('/:id', requireAuth, async (req, res) => {
   res.json(data);
 });
 
-// exercícios atribuídos a um aluno com o progresso dele em cada um (pendente ou
-// concluído) — usado na tela de evolução do professor, que antes só mostrava
-// os já respondidos
 router.get('/:id/exercicios', requireAuth, async (req, res) => {
   if (req.params.id !== req.user.id) {
     const { data: chamador, error: chamadorError } = await req.supabase

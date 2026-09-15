@@ -54,8 +54,6 @@ router.post('/', requireAuth, async (req, res) => {
   res.status(201).json({ id: data.user.id, nome, email, senhaPadrao: SENHA_PADRAO });
 });
 
-// reset "acesso mestre": a diretoria não precisa saber a senha atual do
-// professor — define uma nova senha padrão e obriga a troca no próximo login
 router.patch('/:id/resetar-senha', requireAuth, async (req, res) => {
   if (!(await exigirDiretor(req, res))) return;
 
