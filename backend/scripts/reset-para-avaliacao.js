@@ -1,7 +1,3 @@
-// Zera 100% dos dados reais da escola e deixa apenas 3 contas de teste
-// (diretor, professor, aluno) para o avaliador da AE II acessar a plataforma.
-// Uso: node scripts/reset-para-avaliacao.js
-
 import { supabaseAdmin } from '../src/config/supabaseAdmin.js';
 
 const DIRETOR = { email: 'diretor.teste@gmail.com', senha: 'aprende123', nome: 'Diretor Teste', tipo: 'diretor' };
